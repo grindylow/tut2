@@ -1,0 +1,110 @@
+div.tut_entry {
+    border-radius: 0.4em;
+    background-color: #ddd;
+    padding: 0.4em;
+    margin-bottom: 0.2em;
+    margin-left: 0.3em;
+}
+
+#tut-entry-template {
+    display: none;
+}
+
+.tut_entry div {
+    border-radius: 0.3em;
+    padding: 0.1em 0.4em 0.1em 0.4em;
+    xbackground-color: red;
+    display: inline;
+}
+
+div.tut_container {
+    border-radius: 0;
+    padding: 0 0 0 0;
+}
+
+div.tut_right {
+    float: right;
+    xvertical-align: bottom;
+    padding: 0 0 0 0;
+}
+
+div.tut_resume {
+    vertical-align: top;
+    padding: 0 0 0 0;
+    xxbackground-color: lightgreen;
+    display: none;
+}
+
+.tut_entry:hover div.tut_resume {
+    display: inline;
+}
+
+.tut_duration {
+    vertical-align: top;
+    background-color: lightgreen;
+}
+
+div.tut_starttime {
+    background-color: #eee;
+    padding-left: 1.2em;
+    margin-right: 0.5em;
+}
+
+div.tut_project {
+    background-color: violet;
+}
+
+div.tut_logentry {
+    background-color: #eee;
+}
+
+div.tut_hidden {
+    visibility: hidden;
+}
+
+div.tut_notyetvalid {
+    color: #ccc;
+    background-color: #eee;
+}
+
+body p {
+    margin-bottom: 0.1em;
+    font-weight: bold;
+}
+
+body {
+    font-family: sans-serif;
+}
+
+.tut_project.tut_proj_100 {
+    background-color: red;
+}
+.tut_project.tut_proj_101 {
+    background-color: yellow;
+}
+.tut_project.tut_proj_102 {
+    background-color: blue;
+}
+.tut_project.tut_proj_103 {
+    background-color: green;
+}
+.tut_project.tut_proj_104 {
+    background-color: white;
+}
+
+.tut_settings_menu {
+    float: right;
+}
+
+.tut_entry div input {
+    display: none;
+}
+
+.tut_entry div.tut_editing div {
+    display: none;
+}
+
+.tut_entry div.tut_editing input {
+    display: inline;
+}
+

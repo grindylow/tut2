@@ -52,3 +52,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Customised by Grindylow:
+flask_secret_key

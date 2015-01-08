@@ -1,0 +1,13 @@
+Track your Time Mark 2
+======================
+
+tut2 (pronounced "tutoo") is a one-click time tracking application
+designed to make time tracking effortless. It works both on- and
+offline and automatically syncs across all your devices.
+
+
+For the technically minded
+==========================
+
+Synchronisation functionality is based on the Apache PouchDB framework
+(http://pouchdb.com/).
