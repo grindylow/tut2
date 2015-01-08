@@ -1,0 +1,38 @@
+Development Environment Setup Instructions
+==========================================
+
+Vyperlink is implemented in Python, and utilises a number of
+libraries. The following sections describe one possible way of setting
+up a working environment for Vyperlink.
+
+This assumes a basic Ubuntu 12.04 (LTS) setup to begin with.
+
+
+Python/Virtualenv setup
+-----------------------
+  ...as documented on http://www.virtualenv.org/en/latest/
+
+    sudo apt-get install python-pip python-virtualenv
+
+  In .../virtualenvs:
+
+    virtualenv tut2env
+    source tut2env/bin/activate
+
+
+Other (Ubuntu) Packages
+-----------------------
+
+
+
+
+Python required packages
+------------------------
+
+Frameworks, interface layers, etc.:
+  pip install flask flask-debugtoolbar flask-login
+
+//  pip install flask-mongoengine
+
+Not strictly necessary, but very useful:
+  pip install ipython

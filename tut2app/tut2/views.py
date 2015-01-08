@@ -1,28 +1,11 @@
-from flask import Flask,render_template,jsonify,request
-from flask_debugtoolbar import DebugToolbarExtension
-from flask.ext.login import *
-
-login_manager = LoginManager()
-app = Flask(__name__)
-login_manager.init_app(app)
-
-# the toolbar is only enabled in debug mode:
-app.debug = True
-
-# set a 'SECRET_KEY' to enable the Flask session cookies
-# we read the key from a file, which we exclude from
-# the source repository
-f=open("flask_secret_key","r")
-app.config['SECRET_KEY']=f.read()
-f.close() 
-
-toolbar = DebugToolbarExtension(app)
+from flask import render_template,request
+from tut2 import app
 
 @app.route("/")
 def hello():
     return render_template("home.html")
 
-@login_manager.user_loader
+#@login_manager.user_loader
 def load_user(userid):
     return User.get(userid)
 
@@ -46,6 +29,3 @@ def track():
         {'starttime':'12:45'} ]
     return render_template("page1.html",entries=entries)
 
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0')
