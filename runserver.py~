@@ -1,2 +1,0 @@
-from tut2app import app
-app.run(debug=True);
