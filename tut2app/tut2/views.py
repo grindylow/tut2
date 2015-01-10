@@ -1,23 +1,37 @@
-from flask import render_template,request
-from tut2 import app
+from flask import render_template,request,flash,redirect,url_for
+from flask.ext.login import login_user,logout_user
+from tut2 import app,login_manager,model
 
 @app.route("/")
 def hello():
     return render_template("home.html")
 
-#@login_manager.user_loader
+@login_manager.user_loader
 def load_user(userid):
-    return User.get(userid)
+    return model.User.retrieve_based_on_id(userid)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.form:
         # login and validate the user...
-        user={}
-        login_user(user)
-        flash("Logged in successfully.")
-        return redirect(request.args.get("next") or url_for("index"))
+        user=model.User.retrieve_based_on_given_credentials(name=request.form['username'],password=request.form['password'])
+        if not user:
+            flash("invalid credentials")
+        else:
+            login_user(user)
+            flash("Logged in successfully.")
+        return redirect(request.args.get("next") or url_for("details"))
     return render_template("login.html")
+
+@app.route("/logout")
+#@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("details"))
+
+@app.route("/forloggedinonly")
+def details():
+    return render_template("userdetails.html")
 
 @app.route("/track")
 def track():
@@ -29,3 +43,6 @@ def track():
         {'starttime':'12:45'} ]
     return render_template("page1.html",entries=entries)
 
+@app.route("/")
+def index():
+    pass
