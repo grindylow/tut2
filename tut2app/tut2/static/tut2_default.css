@@ -9,6 +9,9 @@ div.tut_entry {
 #tut-entry-template {
     display: none;
 }
+#tut-section-header-template {
+    display: none;
+}
 
 .tut_entry div {
     border-radius: 0.3em;
