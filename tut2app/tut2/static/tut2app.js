@@ -271,6 +271,22 @@
 	//top_entry.find('.tut_viewbox').addClass('tut_notyetvalid');
     }
 
+    // The resume button of some entry or other was clicked.
+    // Create a new entry with identical properties but current time
+    // (and new uid of course).
+    function resumeClicked(event) {
+	console.log("resumeClicked()");
+	var entryroot=$(this).parents(".tut_entry");
+	console.log("item with id "+$(entryroot).attr("id")+" is the resume source.");
+	var uid=decodeID($(entryroot).attr("id"));
+	var newentry=jQuery.extend({}, mymodel.getEntryByUID(uid));  // shallow copy
+	var now = Date.now();
+	newentry["starttime_utc_ms"]=now;
+	var uid=mymodel.addEntry(newentry);
+	redrawTutEntriesUI([entry_template].concat(mymodel.getAllEntries()));
+	return false; // event handled!
+    }
+
     function itemClicked(event) {
 	//$(this).addClass("tut_editing");
 	var entryroot=$(this).parents(".tut_entry");
@@ -350,10 +366,12 @@
 	var containers=$(root).find('.tut_container');
 	var viewboxes=$(root).find('.tut_viewbox');
 	var editboxes=$(root).find('.tut_editbox');
+	var resumebuttonlinks=$(root).find('.tut_resume a');
 	//containers.on('click',null,null,itemClicked);
 	viewboxes.on('click',null,null,itemClicked);
 	editboxes.on('blur',null,null,itemBlurred);
 	editboxes.on('keypress',null,null,onKeyPress);
+	resumebuttonlinks.on('click',null,null,resumeClicked);
     }
     
     console.log("mark A");
