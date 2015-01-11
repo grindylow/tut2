@@ -44,3 +44,25 @@ icon. Switch back to entry-by-entry view by clicking on the "list"
 icon.
 
 Generate daily/weekly/etc reports on the reports page (/report).
+
+
+Sharing
+-------
+
+Sharing is what makes time tracking valuable for teams consisting
+of more than one person.
+
+You can choose to share your time log with one or multiple
+"organisational units". Administrators of the respective
+"organisational units" will be able to access your logged time, for
+the primary purpose of generating reports.
+
+Note that the relationship defined by "sharing" is not reciprocal.
+Just because you make your time entries available to some OU doesn't
+mean that you will gain access to time logs from other people in that
+same OU (unless you are an administrator for that OU).
+
+Administrators of OUs can invite users to join an OU.
+
+Users can request to join any OU, but the OU administrators will have
+to approve the request.

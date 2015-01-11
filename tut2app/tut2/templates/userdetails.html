@@ -25,7 +25,9 @@
 
     current_user.is_authenticated(): "{{ current_user.is_authenticated() }}" <br />
     current_user.is_active(): "{{ current_user.is_active() }}" <br />
-    current_user.name: "{{ current_user.name }}" <br />
+    current_user.is_anonymous(): "{{ current_user.is_anonymous() }}" <br />
+    current_user.get_id(): "{{ current_user.get_id() }}" <br />
+    current_user.fullname: "{{ current_user.fullname }}" <br />
     current_user.schnuff: "{{ current_user.schnuff }}" <br />
     ...
   </body>
