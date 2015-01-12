@@ -13,15 +13,18 @@
 
     var ENTER_KEY = 13;
     var tutEntryTemplate = document.getElementById('tut-entry-template');
+    
+    function createTemplateEntry() {
+	return { "uid":"entrytemplate",
+		 "starttime_utc_ms":Date.now(),   // was: now,
+		 "project":"enter project", 
+		 "logentry":"enter log entry (task description)", 
+		 "duration":"unknown" 
+	       };
+    };
 
-    var entry_template = 
-	{ "uid":"entrytemplate",
-	  "starttime_utc_ms":Date.now(),   // was: now,
-	  "project":"enter project", 
-	  "logentry":"enter log entry (task description)", 
-	  "duration":"unknown" 
-	};
-
+    var template_entry=createTemplateEntry();
+	
 
   // Initialise a sync with the remote server
   function sync() {
@@ -171,8 +174,15 @@
 
 	// approach 1 (should work well enough for adding entries, not so much
 	// for deleting/moving them): 
-	//  whenever we encounter an entry that isn't in the HTML where it
-	//  ought to be, we simply insert it.
+	// - whenever we encounter an entry that isn't in the HTML where it
+	//   ought to be, we simply insert it.
+	// - if there are any entries left in the HTML once we have reached
+	//   the end of our model, we simply delete them.
+	//   (for deleted model entries that approach usually means we'll
+	//   rebuild the entire list from the removed entry on, and then remove
+	//   the - now duplicate - tail).
+	//   (it won't deal with changed timestamps too well, either...)
+	//   but it will cope - good enough for now!
 	var idx_model=0;  // index into model
 	var idx_view=0;   // index into HTML nodes
 	var traversed_all_model_entries=false;
@@ -188,6 +198,14 @@
 	    if(traversed_all_view_nodes && traversed_all_model_entries) {
 		break; // we're done
 	    }
+	    if(traversed_all_model_entries) {
+		// all that remains is to clear out all remaining view entries
+		console.log("view tail clearout");
+		for(var i=idx_view; i<dom_targets.length; i++) {
+		    $(dom_targets[i]).remove();
+		}
+		break;
+	    }
 	    var entry=entries[idx_model];
 
 	    // Are we expecting a new section? Build the section name and see
@@ -202,14 +220,21 @@
 		} else {
 		    // check if next node is the expected section header, insert
 		    // section header if not.
-		    var node=createSectionHeaderNode(sectionname);
-		    if($(node).find(".tut_section_label")[0].html
-		       ==$(dom_targets[idx_view]).find(".tut_section_label")[0].html) {
-			console.log("IDENTICAL SECTION HEADER");
-			idx_view++;
+		    var expectednode=createSectionHeaderNode(sectionname);
+		    var actualnode=dom_targets[idx_view];
+		    var actualnode_sectionlabel=$(actualnode).find(".tut_section_label");
+		    console.log(actualnode_sectionlabel);
+		    if(actualnode_sectionlabel.length!=0) {
+			if($(expectednode).find(".tut_section_label")[0].html
+			   ==actualnode_sectionlabel[0].html) {
+			    console.log("IDENTICAL SECTION HEADER");
+			    idx_view++;
+			}
 		    } else {
-			console.log("SECTION HEADER NOT IDENTICAL");
-			console.log("NOT IMPLEMENTED A");
+			console.log("SECTION HEADER NOT IDENTICAL OR NOT A SECTION HEADER AT ALL");
+			console.log("SIMPLY INSERTING A NEW SECTION HEADER");
+			// simply insert a new section header
+			$(dom_targets[idx_view]).before(expectednode.slideDown(1000));  // not overly pretty (yet). certainly broken in Safari. Not tried other browsers yet.
 		    }
 		}
 	    }
@@ -231,6 +256,14 @@
 		var domuid=decodeID($(dom_targets[idx_view]).attr("id"));
 		if(domuid==entry["uid"]) {
 		    console.log("IDENTICAL ENTRY");
+		    // BUT we still update the time if this entry happens to be
+		    // the template (SPECIAL CASE)
+		    if(domuid=="entrytemplate") {
+			// copied code from createTutEntry() - @todo refactor out
+			var d=new Date(entry['starttime_utc_ms']);
+			var t=timeStr(d);
+			$(dom_targets[idx_view]).find(".tut_starttime").html(t);
+		    }
 		    idx_view++;
 		    idx_model++;
 		} else {
@@ -279,11 +312,30 @@
 	var entryroot=$(this).parents(".tut_entry");
 	console.log("item with id "+$(entryroot).attr("id")+" is the resume source.");
 	var uid=decodeID($(entryroot).attr("id"));
+	if(uid=="entrytemplate") {
+	    console.log("won't resume template!!");
+	    return false;
+	}
 	var newentry=jQuery.extend({}, mymodel.getEntryByUID(uid));  // shallow copy
 	var now = Date.now();
 	newentry["starttime_utc_ms"]=now;
 	var uid=mymodel.addEntry(newentry);
-	redrawTutEntriesUI([entry_template].concat(mymodel.getAllEntries()));
+	redrawTutEntriesUI([createTemplateEntry()].concat(mymodel.getAllEntries()));
+	return false; // event handled!
+    }
+
+    // The delete button of an entry was clicked.
+    function removeClicked(event) {
+	console.log("removeClicked()");
+	var entryroot=$(this).parents(".tut_entry");
+	console.log("item with id "+$(entryroot).attr("id")+" is to be removed.");
+	var uid=decodeID($(entryroot).attr("id"));
+	if(uid=="entrytemplate") {
+	    console.log("won't delete template!!");
+	    return false;
+	}
+	uid=mymodel.deleteEntry(uid);
+	redrawTutEntriesUI([createTemplateEntry()].concat(mymodel.getAllEntries()));
 	return false; // event handled!
     }
 
@@ -317,7 +369,7 @@
 	    addEventListeners(node);
 	    container.prepend(node);
 	    */
-	    redrawTutEntriesUI([entry_template].concat(mymodel.getAllEntries()));
+	    redrawTutEntriesUI([createTemplateEntry()].concat(mymodel.getAllEntries()));
 
 	    // @todo deal with sorting out the section names
 
@@ -367,11 +419,13 @@
 	var viewboxes=$(root).find('.tut_viewbox');
 	var editboxes=$(root).find('.tut_editbox');
 	var resumebuttonlinks=$(root).find('.tut_resume a');
+	var removebuttonlinks=$(root).find('.tut_remove a');
 	//containers.on('click',null,null,itemClicked);
 	viewboxes.on('click',null,null,itemClicked);
 	editboxes.on('blur',null,null,itemBlurred);
 	editboxes.on('keypress',null,null,onKeyPress);
 	resumebuttonlinks.on('click',null,null,resumeClicked);
+	removebuttonlinks.on('click',null,null,removeClicked);
     }
     
     console.log("mark A");
@@ -397,6 +451,17 @@
 	    this.datastore=[entry].concat(this.datastore);
 	    this.saveToLocalStorage();
 	    return uid;
+	},
+	deleteEntry:function(uid) { 
+	    for(var i=0;i<this.datastore.length;i++) {
+		if(this.datastore[i].uid==uid) {
+		    console.log("found culprit for getEntryByUID");
+		    this.datastore.splice(i,1); // remove 1 element at index i
+		    this.saveToLocalStorage();
+		    return;
+		}
+	    }
+	    console.log("CANNOT FIND ENTRY WITH UID "+uid+" IN MODEL");
 	},
 	updateEntry:function(entry) {
 	    for(var i=0;i<this.datastore.length;i++) {
@@ -474,12 +539,29 @@
 	c.empty();
 
 	$("#updategui").on('click',null,null,function() {
-	    redrawTutEntriesUI([entry_template].concat(mymodel.getAllEntries()));
+	    redrawTutEntriesUI([createTemplateEntry()].concat(mymodel.getAllEntries()));
 	    //addEventListeners(document);
 	});
 
 	//addEventListeners(document);
 	//$('#tut-entry-template').clone().appendTo("body");
+
+	// update entire UI every second. we'll see how well this works...
+	// don't even mention race conditions... although i think there might
+	// be *none* as javascript is "run to completion" (isn't it?).
+	// this makes the browser eat up significant CPU power 
+	// (on my system: 30% compared to <10%) - but this is with
+	// developer tools open. Drops to <10% with developer tools closed.
+	// so we should probably optimise this away in a release version.
+	// for each view, it is clear that, in general, we only need to 
+	// update the template timestamp and the duration of the first 
+	// entry. Except on boundaries (new "day" in configured timezone),
+	// but we can code in those special cases.
+	// Still, even our naive "always sync everything" approach works.
+	setInterval(function(){
+	    redrawTutEntriesUI([createTemplateEntry()].concat(mymodel.getAllEntries()));
+	},1000);
+
     });
 
 

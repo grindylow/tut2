@@ -37,8 +37,17 @@ div.tut_resume {
     xxbackground-color: lightgreen;
     display: none;
 }
+div.tut_remove {
+    vertical-align: top;
+    padding: 0 0 0 0;
+    xxbackground-color: lightgreen;
+    display: none;
+}
 
 .tut_entry:hover div.tut_resume {
+    display: inline;
+}
+.tut_entry:hover div.tut_remove {
     display: inline;
 }
 
