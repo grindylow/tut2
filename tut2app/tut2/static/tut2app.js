@@ -349,8 +349,6 @@
 	console.log("item with id "+uid+" was clicked.");
 	var view=$(container).find(".tut_viewbox");
 	var edit=$(container).find(".edit");
-	edit.val(view.html());  // @todo retrieve from model
-	edit.focus();
 
 	// if the user clicked an entry field in the template,
 	// turn the template into a proper entry, and add a new
@@ -359,22 +357,27 @@
 	    console.log("turning template into proper entry");
 	    var d = new Date();
 	    var now = d.getTime();
-	    var uid=mymodel.addEntry({"starttime_utc_ms":now});
+	    uid=mymodel.addEntry({"starttime_utc_ms":now});
 	    entryroot.attr("id",encodeID(uid));
 	    $(entryroot).find(".tut_notyetvalid").removeClass("tut_notyetvalid");
 	    // create a new template
-	    /*
-	    var container=$('#tut-entries-container');
-	    var node=createTutEntryNode(entry_template);
-	    addEventListeners(node);
-	    container.prepend(node);
-	    */
 	    redrawTutEntriesUI([createTemplateEntry()].concat(mymodel.getAllEntries()));
-
-	    // @todo deal with sorting out the section names
-
 	}
-	//alert('clicked');
+
+	var entry=mymodel.getEntryByUID(uid);
+	var val="SORRY-0x1201";
+	if($(edit).hasClass("tut_logentry_edit")) {
+	    val=entry.logentry;
+	} else if($(edit).hasClass("tut_proj_edit")) {
+	    val=entry.project;
+	} else if($(edit).hasClass("tut_starttime_edit")) {
+	    val=entry.starttime_utc_ms;
+	} else {
+	    console.log("don't know this field");
+	    alert("sorry don't know this field");
+	}
+	edit.val(val);
+	edit.focus();
     }
 
     // An edit box was blurred
@@ -391,6 +394,8 @@
 	    entry.logentry=val;
 	} else if($(this).hasClass("tut_proj_edit")) {
 	    entry.project=val;
+	} else if($(this).hasClass("tut_starttime_edit")) {
+	    entry.starttime_utc_ms=parseInt(val);
 	} else {
 	    console.log("cannot store this field");
 	    alert("sorry cannot store - don't know how");
@@ -496,8 +501,20 @@
 	    }
 	    console.log("CANNOT FIND ENTRY WITH UID "+uid+" IN MODEL");
 	},
+	// return all Entries in descending start time order
 	getAllEntries:function() {
+	    this.sortMyEntriesByStarttime();
 	    return this.datastore;
+	},
+	sortMyEntriesByStarttime:function() {
+	    this.datastore.sort(function(a,b){
+		if(a.starttime_utc_ms<b.starttime_utc_ms) {
+		    return 1;
+		} else if(a.starttime_utc_ms>b.starttime_utc_ms) {
+		    return -1;
+		}
+		return 0; // both entries are equal
+	    });
 	},
 	saveToLocalStorage:function() {
 	    localStorage.tut_grill_entries=JSON.stringify(this.datastore);
@@ -560,7 +577,7 @@
 	// Still, even our naive "always sync everything" approach works.
 	setInterval(function(){
 	    redrawTutEntriesUI([createTemplateEntry()].concat(mymodel.getAllEntries()));
-	},1000);
+	},100000);
 
     });
 
