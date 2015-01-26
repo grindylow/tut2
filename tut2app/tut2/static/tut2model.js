@@ -164,7 +164,6 @@ var mymodel={
         });
     },
 
-    /* @todo check how this works for objects */
     saveToLocalStorage:function() {
         var intermediate=[];
         this.datastore.forEach(function(entry) {
@@ -181,6 +180,31 @@ var mymodel={
         intermediate.forEach(function(dict) {
             s.push(tut2_createTutEntry(dict));
         });
+    },
+
+    // See what changes need to be made to myself so as to bring
+    // me in sync with whatever is stored in local storage.
+    updateFromLocalStorage:function() {
+        // Details of the cases to consider see SYNC_DESCRIPTION.
+        var intermediate=[];
+        intermediate=JSON.parse(localStorage.tut_grill_entries);
+        
+        // (1.1) copy new entries to remote
+        // new entries are identified by the special remote revision "0" (really? maybe not)
+        this.datastore.forEach(function(entry) {
+            if(!intermediate.hasEntry(entry.getUID())) {
+                intermediate.push(entry);
+            }
+        });
+
+        // (1.2) copy new elements from remote
+        intermediate.forEach(function(entry) {
+            if(!this.datastore.hasEntry(entry.getUID())) {
+                this.datastore.push(entry);
+            }
+        });
+
+        // we leave the hard case (1.3) until later...
     },
 
     fillModelWithSomeExampleData:function() {
