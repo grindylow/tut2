@@ -26,6 +26,7 @@ function tut2_createTutEntry(params) {
         return uuid;
     };    
 
+    /* public member functions */
     o.getUID=function() {
         return _uid;
     };
@@ -75,123 +76,117 @@ function tut2_createTutEntry(params) {
     return o;
 };
 
-var mymodel={
+function tut2_createTutModel(params)
+{
+    var o={};
 
-    datastore:[],
+    /* private variables and member functions */
+    var datastore=[];
+
+    var saveToLocalStorage=function() {
+        var intermediate=[];
+        datastore.forEach(function(entry) {
+            intermediate.push(entry.pickleToDict());
+        });
+        localStorage.tut_grill_entries=JSON.stringify(intermediate);
+    };
+
+    var sortMyEntriesByStarttime=function() {
+        datastore.sort(function(a,b){
+            if(a.getStarttimeUtcMs()<b.getStarttimeUtcMs()) {
+                return 1;
+            } else if(a.getStarttimeUtcMs()>b.getStarttimeUtcMs()) {
+                return -1;
+            }
+            return 0; // both entries are equal
+        });
+    };
+
+    /* public member functions */
 
     /* This is a special entry that only ever exists in the view. 
        The user enters a new task into that entry (which will turn the
        entry into a "regular" log entry).
        @todo Move this to view?
     */
-    createTemplateEntry:function() {
+    o.createTemplateEntry=function() {
         return tut2_createTutEntry(    { "uid":"entrytemplate",
                                          "starttime_utc_ms":Date.now(),   // was: now,
                                          "project":"enter project", 
                                          "logentry":"enter log entry (task description)"
                                         } );
-    },
-    
-    addEntry:function(entry) { 
+    };
+
+    o.addEntry=function(entry) { 
         // for now, we always add the new entry to the beginning
         // of the list, assuming it is the most recent one.
-        this.datastore=[entry].concat(this.datastore);
-        this.saveToLocalStorage();
-    },
+        datastore=[entry].concat(datastore);
+        saveToLocalStorage();
+    };
 
-    deleteEntry:function(uid) { 
-        for(var i=0;i<this.datastore.length;i++) {
-            if(this.datastore[i].getUID()==uid) {
+    o.deleteEntry=function(uid) { 
+        for(var i=0;i<datastore.length;i++) {
+            if(datastore[i].getUID()==uid) {
                 console.log("found culprit for deleteEntry");
-                this.datastore.splice(i,1); // remove 1 element at index i
-                this.saveToLocalStorage();
+                datastore.splice(i,1); // remove 1 element at index i
+                saveToLocalStorage();
                 return;
             }
         }
         console.log("CANNOT FIND ENTRY WITH UID "+uid+" IN MODEL");
-    },
+    };
 
-    updateEntry:function(entry) {
+    o.updateEntry=function(entry) {
         console.err("calling updateEntry() is no longer necessary");
-        for(var i=0;i<this.datastore.length;i++) {
-            if(this.datastore[i].getUID()==entry.getUID()) {
+        for(var i=0;i<datastore.length;i++) {
+            if(datastore[i].getUID()==entry.getUID()) {
                 console.log("found culprit for updateentry");
-                this.datastore[i]=entry;
+                datastore[i]=entry;
                 break;
             }
         }
-        this.saveToLocalStorage();
-    },
+        saveToLocalStorage();
+    };
 
-    XXXXgetEntryByStarttime:function(starttime_utc_ms) {
-        console.log("model.getEntryByStarttime("+starttime_utc_ms+")");
-        console.log(this.datastore.length);
-        for(var i=0;i<this.datastore.length;i++) {
-            if(this.datastore[i].getStarttimeUtcMs()==starttime_utc_ms) {
-            console.log("found culprit for getEntryByStarttime");
-            return this.datastore[i];
-            }
-        }
-    },
-
-    getEntryByUID:function(uid) {
+    o.getEntryByUID=function(uid) {
         console.log("model.getEntryByUID("+uid+")");
-        console.log(this.datastore.length);
-        for(var i=0;i<this.datastore.length;i++) {
-            console.log(this.datastore[i].getUID());
-            if(this.datastore[i].getUID()==uid) {
+        console.log(datastore.length);
+        for(var i=0;i<datastore.length;i++) {
+            console.log(datastore[i].getUID());
+            if(datastore[i].getUID()==uid) {
                 console.log("found culprit for getEntryByUID");
-                return this.datastore[i];
+                return datastore[i];
             }
         }
         console.log("CANNOT FIND ENTRY WITH UID "+uid+" IN MODEL");
-    },
+    };
 
     // return all Entries in descending start time order
-    getAllEntries:function() {
-        this.sortMyEntriesByStarttime();
-        return this.datastore;
-    },
+    o.getAllEntries=function() {
+        sortMyEntriesByStarttime();
+        return datastore;
+    };
 
-    sortMyEntriesByStarttime:function() {
-        this.datastore.sort(function(a,b){
-            if(a.getStarttimeUtcMs()<b.getStarttimeUtcMs()) {
-            return 1;
-            } else if(a.getStarttimeUtcMs()>b.getStarttimeUtcMs()) {
-            return -1;
-            }
-            return 0; // both entries are equal
-        });
-    },
-
-    saveToLocalStorage:function() {
-        var intermediate=[];
-        this.datastore.forEach(function(entry) {
-            intermediate.push(entry.pickleToDict());
-        });
-        localStorage.tut_grill_entries=JSON.stringify(intermediate);
-    },
-
-    readFromLocalStorage:function() {
+    o.readFromLocalStorage=function() {
         var intermediate=[];
         intermediate=JSON.parse(localStorage.tut_grill_entries);
-        this.datastore=[];
-        var s=this.datastore;
+        datastore=[];
+        var s=datastore; // @todo remove?
         intermediate.forEach(function(dict) {
             s.push(tut2_createTutEntry(dict));
         });
-    },
+    };
 
     // See what changes need to be made to myself so as to bring
     // me in sync with whatever is stored in local storage.
-    updateFromLocalStorage:function() {
+    o.updateFromLocalStorage=function() {
         // Details of the cases to consider see SYNC_DESCRIPTION.
         var intermediate=[];
         intermediate=JSON.parse(localStorage.tut_grill_entries);
         
         // (1.1) copy new entries to remote
         // new entries are identified by the special remote revision "0" (really? maybe not)
-        this.datastore.forEach(function(entry) {
+        datastore.forEach(function(entry) {
             if(!intermediate.hasEntry(entry.getUID())) {
                 intermediate.push(entry);
             }
@@ -199,16 +194,20 @@ var mymodel={
 
         // (1.2) copy new elements from remote
         intermediate.forEach(function(entry) {
-            if(!this.datastore.hasEntry(entry.getUID())) {
-                this.datastore.push(entry);
+            if(!datastore.hasEntry(entry.getUID())) {
+                datastore.push(entry);
             }
         });
 
         // we leave the hard case (1.3) until later...
-    },
+    };
 
-    fillModelWithSomeExampleData:function() {
-        this.addEntry( tut2_createTutEntry( {'project':'Example Project 1', 'starttime_utc_ms':12345678}) );
-        this.addEntry( tut2_createTutEntry( {'project':'Another Example Project', 'logentry':'An example log entry', 'starttime_utc_ms':12345679}) );
-    }
+    o.fillModelWithSomeExampleData=function() {
+        o.addEntry( tut2_createTutEntry( {'project':'Example Project 1', 'starttime_utc_ms':12345678}) );
+        o.addEntry( tut2_createTutEntry( {'project':'Another Example Project', 'logentry':'An example log entry', 'starttime_utc_ms':12345679}) );
+    };
+
+    return o;
 };
+
+var mymodel=tut2_createTutModel();
