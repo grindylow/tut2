@@ -155,7 +155,7 @@
             return false;
         }
         var src=mymodel.getEntryByUID(uid);
-        var newentry=src.clone();
+        var newentry=src.createDuplicate();
         var now = Date.now();
         newentry.setStarttimeUtcMs(now);
         mymodel.addEntry(newentry);
@@ -196,7 +196,7 @@
         if(uid=="entrytemplate") {
             console.log("turning template into proper entry");
             var now = Date.now();
-            var entry=tut2_createTutEntry( {"starttime_utc_ms":now} );
+            var entry=tut2_createTutEntry( mymodel, {"starttime_utc_ms":now} );
             uid=entry.getUID();
             mymodel.addEntry(entry);
             entryroot.attr("id",encodeID(uid));
@@ -349,7 +349,7 @@
                     console.log(actualnode_sectionlabel);
                     if(actualnode_sectionlabel.length!=0) {
                         if($(expectednode).find(".tut_section_label")[0].html
-                         ==actualnode_sectionlabel[0].html) {
+                         ===actualnode_sectionlabel[0].html) {
                             console.log("IDENTICAL SECTION HEADER");
                             idx_view++;
                         }

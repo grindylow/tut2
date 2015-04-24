@@ -72,3 +72,31 @@ For each entry-ID, once of the following cases arises:
      sub-case b.3: (remote).revision<(me).last_synced_revision
      impossible, but see a.2
 
+
+Exploring an alternative approach (A): repository-wide revision numbers for "upstream"
+======================================================================================
+
+Each client maintains a record of "upstream" revision numbers for each Entry
+in the local database.
+
+Upstream revision numbers are always monotonically increasing.
+
+Whenever a sync is desired/scheduled/requested, the following happens:
+
+1. Client requests any elements with 
+    * revision number > biggest currently stored revision number
+    and
+    * time in desired time range (usually something like "anything newer than ...")
+
+    Upstream repo responds with list of Entries. Those get integrated into local repo.
+    Any conflicts with locally changed Entries are detected as follows:
+
+    a. local item doesn't exist --> insert, with local revision number "0"
+    b. local item exists, with revision number "0". --> overwrite with new version from repo.
+    c. local item exists, with changes --> merge somehow
+
+2. Client transmits any elements with local revision number > 0
+    * upstream responds with global revision number for that entry. reset local revision
+      to "0".
+    * that's it. all the merging has already happened in step 1 above.
+
