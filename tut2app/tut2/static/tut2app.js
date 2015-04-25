@@ -32,7 +32,9 @@ var myview;
         });
 
         $("#syncwithlocalstorage").on('click',null,null,function() {
-            mymodel.syncWithLocalStorage();
+            var upstreamModel=tut2_createTutModel();
+            upstreamModel.populateFromLocalStorage();
+            mymodel.syncWithUpstream('localstorage',upstreamModel);
         });
 
         // update entire UI every second. we'll see how well this works...
@@ -49,7 +51,7 @@ var myview;
         // Still, even our naive "always sync everything" approach works.
         setInterval(function(){
             myview.redrawTutEntriesUI([mymodel.createTemplateEntry()].concat(mymodel.getAllEntries()));
-        },100000);
+        },10000000);
 
     });
 

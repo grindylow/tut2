@@ -1,6 +1,8 @@
 /* tut2 
 
    the model
+
+   consisting of TutEntries and the TutModel (the container)
 */
 
 'use strict';
@@ -32,13 +34,18 @@ function tut2_createTutEntry(model,params) {
     o.getUID=function()    { return _uid;  };
     o.setUID=function(uid) { _uid=uid;     };
 
-    o.getRevision=function() { return _revision;      };
+    o.getRevision=function()  { return _revision;     };
+    o.setRevision=function(r) { _revision=r;          };
 
     o.getProject=function()  { return _project;       };
-    o.setProject=function(t) { _project=t;            };
+    o.setProject=function(t) { _project=t;
+                               _revision=_model.getNewRevNo();  // Indicate "modified" state
+                             };
 
     o.getLogentry=function()  { return _logentry;     };
-    o.setLogentry=function(t) { _logentry=t;          };
+    o.setLogentry=function(t) { _logentry=t;          
+                                _revision=_model.getNewRevNo();  // Indicate "modified" state
+                              };
 
     o.getStarttimeUtcMs=function() {
         return _starttime_utc_ms;
@@ -118,11 +125,11 @@ function tut2_createTutModel(params)
     // entries at the upstream end and need to be integrated into our "working 
     // copy".
     var syncState={'localstorage':{'latestRevWeHaveFromThem':0,
-                                           'ourLatestRevAfterLastSync':0,
-                                           'latestUpstreamRevisionsWeHaveFromThem':{},
-                                           'ourLatestSyncedRevisions':{}
-                                          }
-                          };
+                                   'ourLatestRevAfterLastSync':0,
+                                   'latestUpstreamRevisionsWeHaveFromThem':{},
+                                   'ourLatestSyncedRevisions':{}
+                                  }
+                  };  // @todo move to syncWithUpstream() - initialise on first invocation, i.e. if given upstreamName doesn't exist in the array yet
 
     var sortMyEntriesByStarttime=function() {
         datastore.sort(function(a,b){
@@ -243,7 +250,7 @@ function tut2_createTutModel(params)
     };
 
     // The following two are only in here, because this object doubles up as a 
-    // representativ for the localStorage "upstream" repo.
+    // representative for the localStorage "upstream" repo.
     // Our regular model should only ever sync to upstream, never store to local
     // storage directly.
     o.saveToLocalStorage=function() {
@@ -280,36 +287,55 @@ function tut2_createTutModel(params)
         return resultSet;
     };
 
+
+    // Sync with the given upstream "repository", following the algorithm described
+    // in SYNC_DESCRIPTION. Sync state information is maintained in our (private) 
+    // syncState variable, for each upstream repository.
+    //  @param upstreamName    A string that uniquely identifies this particular
+    //                         upstream repository. Used internally as an index
+    //                         into the syncState array.
+    //  @param upstreamStub    The interface to the upstream repository. It must support
+    //                         all methods required for syncing, and forward the information
+    //                         on to the underlying repository as required.
+    //                         Currently, two distinct such implementations exist:
+    //                          - a model that populates itself from localStorage (and 
+    //                            can store itself back to localStorage), used for syncing
+    //                            between browser windows/tabs and for "offline" functionality.
+    //                          - a model that talks to the server database, used for
+    //                            permanent storage.
+
     // See what changes need to be made to myself so as to bring
     // me in sync with whatever is stored in local storage.
-    o.syncWithLocalStorage=function() {
-        // We try to implement alternative sync as described in
+    o.syncWithUpstream=function(upstreamName,upstreamStub) {
+        // We try to implement the "alternative sync" method as described in
         // SYNC_DESCRIPTION.
-        var upstream=tut2_createTutModel();
-        upstream.populateFromLocalStorage();
-        var upstreamName='localstorage';  // to identify this repo in our sync state structure
 
         // algorithm (A)
         // part 1: update local "working copy"
-        console.log('sync part 1');
-        var newEntries=upstream.queryEntries(syncState[upstreamName].latestRevWeHaveFromThem+1);
+        console.info('sync part 1');
+        var newEntries=upstreamStub.queryEntries(syncState[upstreamName].latestRevWeHaveFromThem+1);
+                   // @todo limit this query by (entry) timestamp
         newEntries.forEach(function(upstreamEntry) {
             console.log('integrating entry:',upstreamEntry.dump());
             if(syncState[upstreamName].latestRevWeHaveFromThem<upstreamEntry.getRevision()) {
                 syncState[upstreamName].latestRevWeHaveFromThem=upstreamEntry.getRevision();
-            }
+            }  // ensures that we know about the max revision number when we have processed all entries
             var localEntry=o.getEntryByUID(upstreamEntry.getUID());
             if(localEntry===undefined) {
                 // (a) No such entry at this end. Add.
                 var e=upstreamEntry.clone(o);
+                e.setRevision(0); // 0 indicates "unchanged since last sync"
                 o.addEntry(e);
                 syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()]=e.getRevision();
+                console.log('added the previously non-existing entry',e.dump());
             } else {
                 if(!o.hasUnsyncedModifications(localEntry,upstreamName)) {
                     // (b) We have such an entry, but ours is older. Overwrite.
                     var e=upstreamEntry.clone(o);
-                    syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()]=e.getRevision();
+                    e.setRevision(0); // 0 indicates "unchanged since last sync"
                     o.updateEntry(upstreamEntry);
+                    syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()]=e.getRevision();
+                    console.log('updated our outdated entry',e.dump());
                 } else {
                     // (c) Both versions have changed. Merge.
                     localEntry.setLogentry('MERGED: upstream: '+upstreamEntry.getLogentry()+' local:'+localEntry.getLogentry());
@@ -321,12 +347,12 @@ function tut2_createTutModel(params)
         });
 
         // part 2: commit local modifications upstream
-        console.log('sync part 2');
+        console.info('sync part 2');
         var newLatestRevAfterLastSync=syncState[upstreamName].ourLatestRevAfterLastSync;
         o.getAllEntries().forEach(function(e) {
-            console.log('boo',e.getRevision(),syncState[upstreamName].ourLatestRevAfterLastSync);
+            console.log('local revision:',e.getRevision(),'our latest rev after last sync:',syncState[upstreamName].ourLatestRevAfterLastSync);
             if(e.getRevision()>syncState[upstreamName].ourLatestRevAfterLastSync) {
-                syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[e.getUID()]=upstream.addOrUpdateEntry(e);
+                syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[e.getUID()]=upstreamStub.addOrUpdateEntry(e);
                 syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()]=e.getRevision();
                 if(newLatestRevAfterLastSync<e.getRevision()) {
                     newLatestRevAfterLastSync=e.getRevision();
@@ -336,7 +362,7 @@ function tut2_createTutModel(params)
         syncState[upstreamName].ourLatestRevAfterLastSync=newLatestRevAfterLastSync;
         console.log('sync state:',syncState);
         // finally, store the localStorage-Model back to localStorage and be done with it.
-        upstream.saveToLocalStorage();
+        upstreamStub.saveToLocalStorage();
         //upstream.delete()
     };
 
