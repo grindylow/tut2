@@ -193,7 +193,7 @@
 
         // if the user clicked an entry field in the template,
         // turn the template into a proper entry, and add a new
-        // template to the top
+        // template at the top
         if(uid=="entrytemplate") {
             console.log("turning template into proper entry");
             var now = Date.now();
@@ -336,6 +336,12 @@
             }
             var entry=entries[idx_model];
 
+            // Is the entry deleted (i.e. doesn't exist anymore)? If yes, ignore it!
+            if(entry.isDeleted()) { 
+                idx_model++;
+                continue;
+            }
+
             // Are we expecting a new section? Build the section name and see
             var sectionname=calcSectionName(entry);
             if(sectionname!=currentSectionName) {
@@ -352,12 +358,12 @@
                     var actualnode=dom_targets[idx_view];
                     var actualnode_sectionlabel=$(actualnode).find(".tut_section_label");
                     console.log(actualnode_sectionlabel);
-                    if(actualnode_sectionlabel.length!=0) {
-                        if($(expectednode).find(".tut_section_label")[0].html
-                         ===actualnode_sectionlabel[0].html) {
-                            console.log("IDENTICAL SECTION HEADER");
-                            idx_view++;
-                        }
+                    //console.log($(expectednode).find(".tut_section_label")[0].innerHTML,actualnode_sectionlabel[0].innerHTML);
+                    if(     (actualnode_sectionlabel.length!=0)  
+                        &&  ($(expectednode).find(".tut_section_label")[0].innerHTML
+                             ===actualnode_sectionlabel[0].innerHTML) ) {
+                        console.log("IDENTICAL SECTION HEADER");
+                        idx_view++;
                     } else {
                         console.log("SECTION HEADER NOT IDENTICAL OR NOT A SECTION HEADER AT ALL");
                         console.log("SIMPLY INSERTING A NEW SECTION HEADER");

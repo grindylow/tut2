@@ -81,12 +81,16 @@ function tut2_createTutModel(params)
         //saveToLocalStorage();
     };
 
+    /** Delete an entry. The entry doesn't actually get wiped from memory
+     *  (since this would cause syncing issues), but marked as "deleted".
+     *  This marker will get propagated during syncing just like any other
+     *  attribute.
+     */
     o.deleteEntry=function(uid) { 
         for(var i=0;i<datastore.length;i++) {
             if(datastore[i].getUID()==uid) {
                 console.log("found culprit for deleteEntry");
-                datastore.splice(i,1); // remove 1 element at index i
-                //saveToLocalStorage();
+                datastore[i].markAsDeleted();
                 return;
             }
         }

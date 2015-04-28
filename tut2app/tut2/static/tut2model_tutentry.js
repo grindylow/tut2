@@ -46,6 +46,11 @@ function tut2_createTutEntry(model,params) {
                                 _revision=_model.getNewRevNo();  // Indicate "modified" state
                               };
 
+    o.markAsDeleted=function() { _deleted=true; 
+                                _revision=_model.getNewRevNo();  // Indicate "modified" state
+                               };
+    o.isDeleted=function()     { return _deleted; };
+
     o.getStarttimeUtcMs=function() {
         return _starttime_utc_ms;
     };
@@ -67,6 +72,7 @@ function tut2_createTutEntry(model,params) {
             "starttime_utc_ms":_starttime_utc_ms,
             "logentry":_logentry,
             "project":_project,
+            "deleted":_deleted,
             "revision":m.getNewRevNo()
         });
     };
@@ -85,6 +91,7 @@ function tut2_createTutEntry(model,params) {
                  'logentry':_logentry,
                  'starttime_utc_ms':_starttime_utc_ms,
                  'uid':_uid,
+                 'deleted':_deleted,
                  'revision':_revision };
     };
     // Note: unpickle by passing the dict into tut2_createTutEntry().
@@ -94,10 +101,12 @@ function tut2_createTutEntry(model,params) {
     var _logentry='newly created logentry by TutEntry constructor';
     var _project='newly created project by TutEntry constructor';
     var _model=model; // revision numbers will be generated via callback to owning model
-    var _revision=-1; 
+    var _revision=-1;
+    var _deleted=false;
 
     if(params.hasOwnProperty("logentry")) { _logentry=params.logentry; }
     if(params.hasOwnProperty("project"))  { _project=params.project; }
+    if(params.hasOwnProperty("deleted"))  { _deleted=params.deleted; }
     if(params.hasOwnProperty("starttime_utc_ms"))  { _starttime_utc_ms=params.starttime_utc_ms; }
     if(params.hasOwnProperty("uid"))      { _uid=params.uid; }  /* somewhat problematic? only used by createTemplateEntry(). */
     if(params.hasOwnProperty("revision")) { _revision=params.revision; } else { _revision=model.getNewRevNo(); }

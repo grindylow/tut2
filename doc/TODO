@@ -1,5 +1,21 @@
+
+TODO
+
+Deal with "delete" properly: 
+ - "deleted" entries are just ordinary entries with the "deleted" attribute
+   set.
+ - Sync just like everything else. But simply don't display them.
+ - Later maybe consider some special cases where deleted items don't need
+   to be synced downstream in the first place.
+
+
+Consider if we really need the "last synced" Sync State entries, or if they're
+simply an extra complication (speed optimisation).
+
+
+
+DONE
+
 Implement "resume" button.
-
 Implement "delete" button.
-
 ...and update sync method to cope along the way.
