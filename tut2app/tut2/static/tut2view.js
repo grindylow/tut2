@@ -242,7 +242,7 @@
             alert("sorry cannot store - don't know how");
         }
         console.log(entry);
-        mymodel.updateEntry(entry);  // @todo probabaly no longer necessary, we're editing the original entry anyway, right?
+        mymodel.updateEntry(entry);  // @todo probably no longer necessary, we're editing the original entry anyway, right?
         $(this).parent().removeClass("tut_editing");
     };
 

@@ -1,111 +1,9 @@
-/* tut2 
+/* tut2 container
 
-   the model
-
-   consisting of TutEntries and the TutModel (the container)
+   the model of the container, containing all tut entries
 */
 
 'use strict';
-
-// A TutEntry is one entry in the list of log entries. It stores
-// information about this particular logged piece of work such
-// as project and start time.
-// It also handles internal details such as marking itself as
-// modified/pristine. 
-// A TutEntry is part of the Tut data model.
-// Each TutEntry knows about the model it is contained in, so it can
-// ask the Model for a new revision number whenever it needs one.
-function tut2_createTutEntry(model,params) {
-    var o={};
-
-    /* private variables and member functions */
-    var generateUUID=function() {
-        // from: http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-        var d = new Date().getTime();
-        var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = (d + Math.random()*16)%16 | 0;
-            d = Math.floor(d/16);
-            return (c=='x' ? r : (r&0x3|0x8)).toString(16);
-        });
-        return uuid;
-    };    
-
-    /* public member functions */
-    o.getUID=function()    { return _uid;  };
-    o.setUID=function(uid) { _uid=uid;     };
-
-    o.getRevision=function()  { return _revision;     };
-    o.setRevision=function(r) { _revision=r;          };
-
-    o.getProject=function()  { return _project;       };
-    o.setProject=function(t) { _project=t;
-                               _revision=_model.getNewRevNo();  // Indicate "modified" state
-                             };
-
-    o.getLogentry=function()  { return _logentry;     };
-    o.setLogentry=function(t) { _logentry=t;          
-                                _revision=_model.getNewRevNo();  // Indicate "modified" state
-                              };
-
-    o.getStarttimeUtcMs=function() {
-        return _starttime_utc_ms;
-    };
-
-    o.setStarttimeUtcMs=function(t) {
-        _starttime_utc_ms=t;
-    };
-
-    // return a loggable representation of this entry
-    o.dump=function() {
-        return o.pickleToDict();
-    }
-
-    // create a copy of this entry, with its own distinct UID
-    o.createDuplicate=function(model) {
-        var m=model || _model;  // use own model if no model passed in
-        return tut2_createTutEntry( m, 
-        { 
-            "starttime_utc_ms":_starttime_utc_ms,
-            "logentry":_logentry,
-            "project":_project,
-            "revision":m.getNewRevNo()
-        });
-    };
-
-    // an exact clone of the entry, with identical UID, but possibly belonging
-    // to another model
-    o.clone=function(model) {
-        var c=o.createDuplicate(model);
-        c.setUID(_uid);
-        return c;
-    }
-
-    // Store as simple object that can be encoded as JSON
-    o.pickleToDict=function() {
-        return { 'project':_project,
-                 'logentry':_logentry,
-                 'starttime_utc_ms':_starttime_utc_ms,
-                 'uid':_uid,
-                 'revision':_revision };
-    };
-    // Note: unpickle by passing the dict into tut2_createTutEntry().
-
-    var _starttime_utc_ms=-3;
-    var _uid=generateUUID();
-    var _logentry='newly created logentry by TutEntry constructor';
-    var _project='newly created project by TutEntry constructor';
-    var _model=model; // revision numbers will be generated via callback to owning model
-    var _revision=-1; 
-
-    if(params.hasOwnProperty("logentry")) { _logentry=params.logentry; }
-    if(params.hasOwnProperty("project"))  { _project=params.project; }
-    if(params.hasOwnProperty("starttime_utc_ms"))  { _starttime_utc_ms=params.starttime_utc_ms; }
-    if(params.hasOwnProperty("uid"))      { _uid=params.uid; }  /* somewhat problematic? only used by createTemplateEntry(). */
-    if(params.hasOwnProperty("revision")) { _revision=params.revision; } else { _revision=model.getNewRevNo(); }
- 
-    console.log("LogEntry constructor done.",params);
-    return o;
-};
 
 // The TutModel maintains the list of all Log Entries, together with
 // the necessary housekeeping data to support syncing.
@@ -115,7 +13,7 @@ function tut2_createTutModel(params)
 
     /* private variables and member functions */
     var datastore=[];
-    var _globalRevNo=1;
+    var _globalRevNo=200;  // just so not everything starts with 1!
 
     // Stores revision numbers for all entries for all upstream repositories
     // also remembers what revision numbers were current when we last synced.
@@ -124,12 +22,7 @@ function tut2_createTutModel(params)
     // Any remote (upstream) revisions > latestRevWeHaveFromThem are updated
     // entries at the upstream end and need to be integrated into our "working 
     // copy".
-    var syncState={'localstorage':{'latestRevWeHaveFromThem':0,
-                                   'ourLatestRevAfterLastSync':0,
-                                   'latestUpstreamRevisionsWeHaveFromThem':{},
-                                   'ourLatestSyncedRevisions':{}
-                                  }
-                  };  // @todo move to syncWithUpstream() - initialise on first invocation, i.e. if given upstreamName doesn't exist in the array yet
+    var syncState={};
 
     var sortMyEntriesByStarttime=function() {
         datastore.sort(function(a,b){
@@ -163,7 +56,12 @@ function tut2_createTutModel(params)
 
     // Has the local entry been modified since it was last
     // synced to the given upstream repository?
+    // The reply is also "true" if the entry in question has
+    // never been synced before.
     o.hasUnsyncedModifications=function(entry,upstreamname) {
+        if(syncState[upstreamname].ourLatestSyncedRevisions[entry.getUID()]===undefined) {
+            return true;   // this entry has never been synced before!
+        }
         if(entry.getRevision()>syncState[upstreamname].ourLatestSyncedRevisions[entry.getUID()]) {
             return true;
         }
@@ -287,6 +185,19 @@ function tut2_createTutModel(params)
         return resultSet;
     };
 
+    /** If we have never synced with the given upstream repository before,
+     *  make sure our sync state structure contains sensible information.
+     */
+    o.initialiseSyncStateIfEmpty=function(upstreamName) {
+        if(!syncState.hasOwnProperty(upstreamName)) {
+            console.log("initialiseSyncStateIfEmpty() is initialising syncState for:",upstreamName);
+            syncState['localstorage'] = { 'latestRevWeHaveFromThem':0,
+                                          'ourLatestRevAfterLastSync':0,
+                                          'latestUpstreamRevisionsWeHaveFromThem':{},
+                                          'ourLatestSyncedRevisions':{}
+                                        }
+        }
+    };
 
     // Sync with the given upstream "repository", following the algorithm described
     // in SYNC_DESCRIPTION. Sync state information is maintained in our (private) 
@@ -310,8 +221,11 @@ function tut2_createTutModel(params)
         // We try to implement the "alternative sync" method as described in
         // SYNC_DESCRIPTION.
 
+        o.initialiseSyncStateIfEmpty(upstreamName);
+
         // algorithm (A)
         // part 1: update local "working copy"
+        console.log('syncState',JSON.stringify(syncState));
         console.info('sync part 1');
         var newEntries=upstreamStub.queryEntries(syncState[upstreamName].latestRevWeHaveFromThem+1);
                    // @todo limit this query by (entry) timestamp
@@ -320,21 +234,29 @@ function tut2_createTutModel(params)
             if(syncState[upstreamName].latestRevWeHaveFromThem<upstreamEntry.getRevision()) {
                 syncState[upstreamName].latestRevWeHaveFromThem=upstreamEntry.getRevision();
             }  // ensures that we know about the max revision number when we have processed all entries
+            // special case: we have already synced that revision. nothing to do.
+            if(syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[upstreamEntry.getUID()]===upstreamEntry.getRevision()) {
+                console.log("- integration cut short - we already have this remote revision!");
+                return;  // nothing to do - proceed to next entry
+            }
             var localEntry=o.getEntryByUID(upstreamEntry.getUID());
             if(localEntry===undefined) {
                 // (a) No such entry at this end. Add.
-                var e=upstreamEntry.clone(o);
-                e.setRevision(0); // 0 indicates "unchanged since last sync"
+                var e=upstreamEntry.clone(o);  // this will also give it a (local) revision number
                 o.addEntry(e);
-                syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()]=e.getRevision();
+                syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()]=e.getRevision(); 
+                syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[e.getUID()]=upstreamEntry.getRevision(); 
+                  // ...we're in sync!
                 console.log('added the previously non-existing entry',e.dump());
             } else {
                 if(!o.hasUnsyncedModifications(localEntry,upstreamName)) {
-                    // (b) We have such an entry, but ours is older. Overwrite.
+                    // (b) We have such an entry, but ours is older (and locally 
+                    // unmodified since last sync). Overwrite.
                     var e=upstreamEntry.clone(o);
-                    e.setRevision(0); // 0 indicates "unchanged since last sync"
-                    o.updateEntry(upstreamEntry);
+                    //e.setRevision(0); // 0 indicates "unchanged since last sync"
+                    o.updateEntry(e);
                     syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()]=e.getRevision();
+                    syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[e.getUID()]=upstreamEntry.getRevision();
                     console.log('updated our outdated entry',e.dump());
                 } else {
                     // (c) Both versions have changed. Merge.
@@ -348,22 +270,24 @@ function tut2_createTutModel(params)
 
         // part 2: commit local modifications upstream
         console.info('sync part 2');
+        console.log('syncState',JSON.stringify(syncState));
         var newLatestRevAfterLastSync=syncState[upstreamName].ourLatestRevAfterLastSync;
         o.getAllEntries().forEach(function(e) {
-            console.log('local revision:',e.getRevision(),'our latest rev after last sync:',syncState[upstreamName].ourLatestRevAfterLastSync);
-            if(e.getRevision()>syncState[upstreamName].ourLatestRevAfterLastSync) {
+            console.log('local revision:',e.getRevision(),'latest sync happend at local rev',syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()],'our latest rev after last sync:',syncState[upstreamName].ourLatestRevAfterLastSync);
+            if(o.hasUnsyncedModifications(e,upstreamName)) {
+                // add this entry to upstream
                 syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[e.getUID()]=upstreamStub.addOrUpdateEntry(e);
+                // take note of the (local) revision number we synced
                 syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()]=e.getRevision();
+                // remember the highest (local) revision number we ever synced
                 if(newLatestRevAfterLastSync<e.getRevision()) {
                     newLatestRevAfterLastSync=e.getRevision();
                 }
+                // @todo (?) remember the highest upstream revision number we ever synced
             }
         });
         syncState[upstreamName].ourLatestRevAfterLastSync=newLatestRevAfterLastSync;
         console.log('sync state:',syncState);
-        // finally, store the localStorage-Model back to localStorage and be done with it.
-        upstreamStub.saveToLocalStorage();
-        //upstream.delete()
     };
 
     o.fillModelWithSomeExampleData=function() {
@@ -377,5 +301,3 @@ function tut2_createTutModel(params)
 
     return o;
 };
-
-var mymodel=tut2_createTutModel();

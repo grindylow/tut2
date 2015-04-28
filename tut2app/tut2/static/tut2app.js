@@ -3,26 +3,31 @@
 'use strict';
 
 var myview;
+var mymodel;
 
 (function() {
 
-    if(localStorage) {
-        console.log("localStorage exists");
-    }
-
-    if(localStorage.tut_grill_entries) {
-        console.log("localStorage has a tut_grill_entries entry");
-        //mymodel.populateFromLocalStorage();
-        //@todo we now sync with localStorage and no longer read it directly.
-    } else {
-        mymodel.fillModelWithSomeExampleData();
-        //mymodel.populateFromLocalStorage();
-    }
- 
     $(document).ready(function(){
-        console.log("mark B");
+
+        console.info("mark B-0");
+        mymodel=tut2_createTutModel();
         myview=tut2_createDefaultView();
 
+        console.info("mark B-1");
+        if(localStorage) {
+            console.log("localStorage exists");
+        }
+
+        if(localStorage.tut_grill_entries) {
+            console.log("localStorage has a tut_grill_entries entry");
+            //mymodel.populateFromLocalStorage();
+            //@todo we now sync with localStorage and no longer read it directly.
+        } else {
+            mymodel.fillModelWithSomeExampleData();
+            //mymodel.populateFromLocalStorage();
+        }
+     
+        console.info("mark B-2");
         // remove this again in the end
         var c=$('#tut-entries-container');
         c.empty();
@@ -32,9 +37,13 @@ var myview;
         });
 
         $("#syncwithlocalstorage").on('click',null,null,function() {
+            console.info("starting sync with localStorage");
             var upstreamModel=tut2_createTutModel();
             upstreamModel.populateFromLocalStorage();
             mymodel.syncWithUpstream('localstorage',upstreamModel);
+            // finally, store the localStorage-Model back to localStorage and be done with it.
+            upstreamModel.saveToLocalStorage();
+            //upstream.delete()
         });
 
         // update entire UI every second. we'll see how well this works...

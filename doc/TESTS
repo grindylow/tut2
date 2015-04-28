@@ -1,0 +1,20 @@
+Testing Syncing
+===============
+
+Start with deleted localStorage. Then refresh page.
+- will fill local model with some example entries
+
+Sync to localstorage. This will test part 2 of the algorithm,
+since the remote end is empty at this stage.
+
+After the sync...
+- localStorage will contain the two example items
+- syncState will indicate that we last synced revisions 101 and 102
+  for the two entries, respectively. The overall highest synced
+  revision will be 102.
+- syncState will indicate that we last synced server (upstream)
+  revisions 2 and 3 for the two entries, respectively. The overall
+  highest synced revision from upstream will be 3.
+
+(note: highes rev no we have from upstream doesn't get updated as of yet!!)
+

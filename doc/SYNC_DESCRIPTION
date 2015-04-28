@@ -91,8 +91,9 @@ Whenever a sync is desired/scheduled/requested, the following happens:
     Upstream repo responds with list of Entries. Those get integrated into local repo.
     Any conflicts with locally changed Entries are detected as follows:
 
-    a. local item doesn't exist --> insert, with local revision number "0"
-    b. local item exists, with revision number "0". --> overwrite with new version from repo.
+    a. local item doesn't exist --> insert, with local revision number "0" @todo ?
+    b. local item exists, and its revision number matches the revision number that
+       was last synced to upstream --> overwrite with new version from repo.
     c. local item exists, with changes --> merge somehow
 
 2. Client transmits any elements with local revision number > 0
