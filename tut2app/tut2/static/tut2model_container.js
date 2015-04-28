@@ -284,6 +284,8 @@ function tut2_createTutModel(params)
                     newLatestRevAfterLastSync=e.getRevision();
                 }
                 // @todo (?) remember the highest upstream revision number we ever synced
+            } else {
+                console.log(" - has no unsynced modifications. skipping.");
             }
         });
         syncState[upstreamName].ourLatestRevAfterLastSync=newLatestRevAfterLastSync;

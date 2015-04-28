@@ -37,6 +37,7 @@
         // the clones are automatically fine, because they have a 
         // different ID.
         node.attr("id",encodeID(entry.getUID()));
+        node.data("revision",entry.getRevision());  // store currrent revision, ".data" is jQuery
         node.find(".tut_project").html(entry.getProject());
         node.find(".tut_logentry").html(entry.getLogentry());
         var d=new Date(entry.getStarttimeUtcMs());
@@ -244,6 +245,7 @@
         console.log(entry);
         mymodel.updateEntry(entry);  // @todo probably no longer necessary, we're editing the original entry anyway, right?
         $(this).parent().removeClass("tut_editing");
+        // @todo update .data("revision") to indicate we're already displaying the latest revision
     };
 
     var onKeyPress=function(event) {
@@ -387,6 +389,14 @@
                         var d=new Date(entry.getStarttimeUtcMs());
                         var t=timeStr(d);
                         $(dom_targets[idx_view]).find(".tut_starttime").html(t);
+                    } else {
+                        // ALSO, THE DATA DISPLAYED IN THIS ENTRY MIGHT BE OUTDATED
+                        // (OLD REVISION).
+                        if($(dom_targets[idx_view]).data("revision")!==entry.getRevision()) {
+                            console.log("correct DOM entry in correct location, but outdated! replacing it with a more current version.");
+                            var node=createTutEntryDOMNode(entry);
+                            $(dom_targets[idx_view]).replaceWith(node);
+                        }
                     }
                     idx_view++;
                     idx_model++;
