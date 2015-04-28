@@ -201,6 +201,9 @@
             uid=entry.getUID();
             mymodel.addEntry(entry);
             entryroot.attr("id",encodeID(uid));
+            entryroot.data("revision",entry.getRevision()); // the template didn't have a revision entry.
+              // if we didn't add this, the GUI refresh would redraw  the element, removing focus
+              // from the currently active text field..
             $(entryroot).find(".tut_notyetvalid").removeClass("tut_notyetvalid");
             // create a new template
             self.redrawTutEntriesUI([mymodel.createTemplateEntry()].concat(mymodel.getAllEntries()));

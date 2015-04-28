@@ -50,9 +50,9 @@ function tut2_createTutEntry(model,params) {
         return _starttime_utc_ms;
     };
 
-    o.setStarttimeUtcMs=function(t) {
-        _starttime_utc_ms=t;
-    };
+    o.setStarttimeUtcMs=function(t) {   _starttime_utc_ms=t;
+                                        _revision=_model.getNewRevNo();  // Indicate "modified" state
+                                    };
 
     // return a loggable representation of this entry
     o.dump=function() {
