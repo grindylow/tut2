@@ -46,6 +46,14 @@ var mymodel;
             //upstream.delete()
         });
 
+        $("#syncwithserver").on('click',null,null,function() {
+            console.info("starting sync with server");
+            var upstreamStub=tut2_createServerModelStub();
+            mymodel.syncWithUpstream('server',upstreamStub);
+            // @todo we might want to trigger an immediate "sync with localStorage"?
+            // need to define some strategy for deciding when to sync with whom.
+        });
+
         // update entire UI every second. we'll see how well this works...
         // don't even mention race conditions... although i think there might
         // be *none* as javascript is "run to completion" (isn't it?).

@@ -213,7 +213,7 @@ function tut2_createTutModel(params)
     o.initialiseSyncStateIfEmpty=function(upstreamName) {
         if(!syncState.hasOwnProperty(upstreamName)) {
             console.log("initialiseSyncStateIfEmpty() is initialising syncState for:",upstreamName);
-            syncState['localstorage'] = { 'latestRevWeHaveFromThem':0,
+            syncState[upstreamName] = { 'latestRevWeHaveFromThem':0,
                                           'ourLatestRevAfterLastSync':0,
                                           'latestUpstreamRevisionsWeHaveFromThem':{},
                                           'ourLatestSyncedRevisions':{}

@@ -1,4 +1,4 @@
-from flask import render_template,request,flash,redirect,url_for
+from flask import render_template,request,flash,redirect,url_for,jsonify
 from flask.ext.login import login_user,logout_user,login_required
 from tut2 import app,login_manager,model
 
@@ -49,6 +49,20 @@ def track():
         {'section':'2014-12-27 (Tuesday)','starttime':'17:25'},
         {'starttime':'12:45'} ]
     return render_template("page1.html",entries=entries)
+
+@app.route("/queryentries")
+# @todo @login_required
+def api_queryentries():
+    """Retrieve (new) entries from server, starting from (server-side) revision fromRev.
+       @returns Array of entries, not necessarily in any guaranteed order.
+       see tut2model_serverstub:queryEntries()
+    """
+
+    fromRev = request.args.get('fromrev', 0, type=int)
+    r = { 'r':0,    # 0=OK, 1=NOT_AUTHORISED, ... (or use HTTP ERROR CODES!!!!)
+          'entries': [],
+          'debug_fromRev': fromRev }
+    return jsonify(r)
 
 @app.route("/")
 def index():
