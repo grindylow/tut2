@@ -12,7 +12,7 @@ the first refresh. Fix!
 
 Convert syncing algorithm to asynchronous.
 
-Implement actual AJAX-syncing with server.
+Implement actual AJAX-syncing with server...
 
 
 DONE

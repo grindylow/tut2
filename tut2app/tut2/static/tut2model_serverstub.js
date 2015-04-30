@@ -22,7 +22,26 @@ function tut2_createServerModelStub(params)
      */
     o.queryEntries=function(fromRev) {
         console.log("serverStub.queryEntries()",fromRev);
-        return [];
+        // we use a synchronous ajax call for now (bad!!), then
+        // @todo we need to rewrite this to run asynchronously.
+        var result = $.ajax({
+            dataType: "json",
+            url: "/api_queryentries",
+            data: {"fromrev":fromRev},
+            //success: success
+            async: false
+        });
+        console.info("retrieved via AJAX synchronous:",result);
+        var data=$.parseJSON(result.responseText);
+        console.info("parsed data:",data);
+
+        var resultSet=[];
+        data.entries.forEach(function(e) {
+            resultSet.push(tut2_createTutEntry(undefined /*model*/,e));
+        });
+
+        console.info("actual entries:",resultSet);
+        return resultSet;
     };
 
     /** Add the given entry e (a tut2_tutEntry) to the server database, or

@@ -50,7 +50,7 @@ def track():
         {'starttime':'12:45'} ]
     return render_template("page1.html",entries=entries)
 
-@app.route("/queryentries")
+@app.route("/api_queryentries")
 # @todo @login_required
 def api_queryentries():
     """Retrieve (new) entries from server, starting from (server-side) revision fromRev.
@@ -58,9 +58,25 @@ def api_queryentries():
        see tut2model_serverstub:queryEntries()
     """
 
+    # @todo retrieve requested entries from database
+    entries = [ 
+                { 'deleted': False,
+                  'logentry': 'First entry from server',
+                  'project':  'SERV.001.10',
+                  'revision': 37,
+                  'starttime_utc_ms': 22345678,
+                  'uid': 'cb98eff3-8a04-4165-b8c0-76e30ae9fdf8' },
+                { 'deleted': False,
+                  'logentry': 'Another entry from server',
+                  'project':  'SERV.277.10',
+                  'revision': 118,
+                  'starttime_utc_ms': 32345678,
+                  'uid': 'db98eff3-8a04-4165-b8c0-76e30ae9fdf8' }
+              ]
+
     fromRev = request.args.get('fromrev', 0, type=int)
     r = { 'r':0,    # 0=OK, 1=NOT_AUTHORISED, ... (or use HTTP ERROR CODES!!!!)
-          'entries': [],
+          'entries': entries,
           'debug_fromRev': fromRev }
     return jsonify(r)
 
