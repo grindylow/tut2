@@ -10,7 +10,9 @@ displayed timestamp gets copied to the new entry (in view), whereas the correct
 "current time" gets registered internally. This means the display is wrong until
 the first refresh. Fix!
 
-Add callbacks into model to inform view about start/end of syncing.
+Convert syncing algorithm to asynchronous.
+
+Implement actual AJAX-syncing with server.
 
 
 DONE
@@ -27,3 +29,5 @@ Deal with "delete" properly:
  - Sync just like everything else. But simply don't display them.
  - Later maybe consider some special cases where deleted items don't need
    to be synced downstream in the first place.
+
+Add callbacks into model to inform view about start/end of syncing.

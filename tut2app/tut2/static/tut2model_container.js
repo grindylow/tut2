@@ -221,33 +221,10 @@ function tut2_createTutModel(params)
         }
     };
 
-    // Sync with the given upstream "repository", following the algorithm described
-    // in SYNC_DESCRIPTION. Sync state information is maintained in our (private) 
-    // syncState variable, for each upstream repository.
-    //  @param upstreamName    A string that uniquely identifies this particular
-    //                         upstream repository. Used internally as an index
-    //                         into the syncState array.
-    //  @param upstreamStub    The interface to the upstream repository. It must support
-    //                         all methods required for syncing, and forward the information
-    //                         on to the underlying repository as required.
-    //                         Currently, two distinct such implementations exist:
-    //                          - a model that populates itself from localStorage (and 
-    //                            can store itself back to localStorage), used for syncing
-    //                            between browser windows/tabs and for "offline" functionality.
-    //                          - a model that talks to the server database, used for
-    //                            permanent storage.
-
-    // See what changes need to be made to myself so as to bring
-    // me in sync with whatever is stored in local storage.
-    o.syncWithUpstream=function(upstreamName,upstreamStub) {
-        // We try to implement the "alternative sync" method as described in
-        // SYNC_DESCRIPTION.
-
-        notifyListenersOfSyncProgress(1,upstreamName); // 1=sync started
-        o.initialiseSyncStateIfEmpty(upstreamName);
-
-        // algorithm (A)
-        // part 1: update local "working copy"
+    // algorithm (A)
+    // part 1: update local "working copy"
+    var sync_algA_pt1=function(upstreamName,upstreamStub)
+    {
         console.log('syncState',JSON.stringify(syncState));
         console.info('sync part 1');
         var newEntries=upstreamStub.queryEntries(syncState[upstreamName].latestRevWeHaveFromThem+1);
@@ -290,8 +267,15 @@ function tut2_createTutModel(params)
                 }
             }
         });
+        
+        // trigger next part of the syncing algorithm
+        sync_algA_pt2(upstreamName,upstreamStub);
+    };
 
-        // part 2: commit local modifications upstream
+    // algorithm (A)
+    // part 2: commit local modifications upstream
+    var sync_algA_pt2=function(upstreamName,upstreamStub)
+    {
         console.info('sync part 2');
         console.log('syncState',JSON.stringify(syncState));
         var newLatestRevAfterLastSync=syncState[upstreamName].ourLatestRevAfterLastSync;
@@ -314,6 +298,39 @@ function tut2_createTutModel(params)
         syncState[upstreamName].ourLatestRevAfterLastSync=newLatestRevAfterLastSync;
         notifyListenersOfSyncProgress(2,upstreamName); // 1=sync completed successfully
         console.log('sync state:',syncState);
+    };
+
+    // Sync with the given upstream "repository", following the algorithm described
+    // in SYNC_DESCRIPTION. Sync state information is maintained in our (private) 
+    // syncState variable, for each upstream repository.
+    //  @param upstreamName    A string that uniquely identifies this particular
+    //                         upstream repository. Used internally as an index
+    //                         into the syncState array.
+    //  @param upstreamStub    The interface to the upstream repository. It must support
+    //                         all methods required for syncing, and forward the information
+    //                         on to the underlying repository as required.
+    //                         Currently, two distinct such implementations exist:
+    //                          - a model that populates itself from localStorage (and 
+    //                            can store itself back to localStorage), used for syncing
+    //                            between browser windows/tabs and for "offline" functionality.
+    //                          - a model that talks to the server database, used for
+    //                            permanent storage.
+
+    // See what changes need to be made to myself so as to bring
+    // me in sync with whatever is stored in local storage.
+    o.syncWithUpstream=function(upstreamName,upstreamStub) {
+        // We try to implement the "alternative sync" method as described in
+        // SYNC_DESCRIPTION.
+
+        notifyListenersOfSyncProgress(1,upstreamName); // 1=sync started
+        o.initialiseSyncStateIfEmpty(upstreamName);
+
+        sync_algA_pt1(upstreamName,upstreamStub);
+          // will start of the syncing, and call subsequent parts automatically as required
+          // actual syncing *may* happen in the background (e.g. waiting for AJAX communications etc),
+          // so this function *might* return quite quickly, which doesn't necessary mean that
+          // the syncing has completed.
+          // note: syncing with "localStorage" always happens synchronously.
     };
 
     o.fillModelWithSomeExampleData=function() {
