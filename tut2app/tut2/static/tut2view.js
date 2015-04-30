@@ -5,12 +5,12 @@
          if the respective element already exists, it won't be
          re-created. If only some of its contents have changed, only
          the relevant content will be updated.
-         */
+ */
 
-         'use strict';
+'use strict';
 
-         function tut2_createDefaultView() {
-            var v={};
+function tut2_createDefaultView() {
+    var v={};
     var self=v;  // Javascript this refers to DOM object inside callbacks
     var ENTER_KEY=13;
 
@@ -446,6 +446,25 @@
         //console.log(top_entry);
         //top_entry.find('.tut_viewbox').addClass('tut_notyetvalid');
     };
+
+    /** Will get called whenever a sync starts/finishes 
+      */
+    v.syncProgressCallback=function(code,upstreamName) {
+        console.info("syncProgressCallback",code,upstreamName);
+        var indicator=$("#syncindicator");
+        if(code===1) {
+            indicator.show();
+            // might also need to give the html engine time to actually render...
+        }
+        if(code===2) {
+            // we delay the hiding a little, so the user actually gets to see the
+            // syncing indicator
+            window.setTimeout(function() { indicator.hide(); },3000);
+        }
+    };
+
+    // "Constructor" actions
+    mymodel.registerSyncProgressListener(v.syncProgressCallback);
 
     return v;
 };

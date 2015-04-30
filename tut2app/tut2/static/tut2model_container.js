@@ -14,6 +14,7 @@ function tut2_createTutModel(params)
     /* private variables and member functions */
     var datastore=[];
     var _globalRevNo=200;  // just so not everything starts with 1!
+    var _syncProgressListeners=[];
 
     // Stores revision numbers for all entries for all upstream repositories
     // also remembers what revision numbers were current when we last synced.
@@ -35,6 +36,13 @@ function tut2_createTutModel(params)
         });
     };
 
+    // Invoke all registered callback functions for the "sync progress" event.
+    var notifyListenersOfSyncProgress=function(code,upstreamName) {
+        _syncProgressListeners.forEach(function(f) {
+            f(code,upstreamName);
+        });
+    };
+
     /* public member functions */
 
     /* This is a special entry that only ever exists in the view. 
@@ -52,6 +60,16 @@ function tut2_createTutModel(params)
 
     o.DEBUG_setGlobalRevNo=function(n) {
         _globalRevNo=n;
+    };
+
+    
+    /** Add a listener for sync events.
+     *  Signature of the callback: f(code,upstreamName)
+     *    code=1: sync started
+     *    code=2: sync completed successfully
+     */
+    o.registerSyncProgressListener=function(f) {
+        _syncProgressListeners.push(f);
     };
 
     // Has the local entry been modified since it was last
@@ -225,6 +243,7 @@ function tut2_createTutModel(params)
         // We try to implement the "alternative sync" method as described in
         // SYNC_DESCRIPTION.
 
+        notifyListenersOfSyncProgress(1,upstreamName); // 1=sync started
         o.initialiseSyncStateIfEmpty(upstreamName);
 
         // algorithm (A)
@@ -293,6 +312,7 @@ function tut2_createTutModel(params)
             }
         });
         syncState[upstreamName].ourLatestRevAfterLastSync=newLatestRevAfterLastSync;
+        notifyListenersOfSyncProgress(2,upstreamName); // 1=sync completed successfully
         console.log('sync state:',syncState);
     };
 
