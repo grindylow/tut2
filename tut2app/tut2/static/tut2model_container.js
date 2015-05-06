@@ -151,12 +151,12 @@ function tut2_createTutModel(params)
     };
 
     o.getEntryByUID=function(uid) {
-        console.log("model.getEntryByUID("+uid+")");
-        console.log(datastore.length);
+        //console.log("model.getEntryByUID("+uid+")");
+        //console.log(datastore.length);
         for(var i=0;i<datastore.length;i++) {
-            console.log(datastore[i].getUID());
+            //console.log(datastore[i].getUID());
             if(datastore[i].getUID()==uid) {
-                console.log("found culprit for getEntryByUID");
+                //console.log("found culprit for getEntryByUID");
                 return datastore[i];
             }
         }
@@ -198,13 +198,15 @@ function tut2_createTutModel(params)
     };
 
     // return all elements that have a global revision number >= fromRev
-    o.queryEntries=function(fromRev) {
+    // updated version for async support: call a callback when the data is ready,
+    // don't return anything
+    o.queryEntries=function(fromRev,callback) {
         var resultSet=[];
         datastore.forEach(function(e) {
             if(e.getRevision()>=fromRev)
                 resultSet.push(e);
         });
-        return resultSet;
+        callback(resultSet);
     };
 
     /** If we have never synced with the given upstream repository before,
@@ -227,53 +229,62 @@ function tut2_createTutModel(params)
     {
         console.log('syncState',JSON.stringify(syncState));
         console.info('sync part 1');
-        var newEntries=upstreamStub.queryEntries(syncState[upstreamName].latestRevWeHaveFromThem+1);
+        upstreamStub.queryEntries(syncState[upstreamName].latestRevWeHaveFromThem+1,
                    // @todo limit this query by (entry) timestamp
-        newEntries.forEach(function(upstreamEntry) {
-            console.log('integrating entry:',upstreamEntry.dump());
-            if(syncState[upstreamName].latestRevWeHaveFromThem<upstreamEntry.getRevision()) {
-                syncState[upstreamName].latestRevWeHaveFromThem=upstreamEntry.getRevision();
-            }  // ensures that we know about the max revision number when we have processed all entries
-            // special case: we have already synced that revision. nothing to do.
-            if(syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[upstreamEntry.getUID()]===upstreamEntry.getRevision()) {
-                console.log("- integration cut short - we already have this remote revision!");
-                return;  // nothing to do - proceed to next entry
+            function(newEntries) {
+                newEntries.forEach(function(upstreamEntry) {
+                    console.log('integrating entry:',upstreamEntry.dump());
+                    if(syncState[upstreamName].latestRevWeHaveFromThem<upstreamEntry.getRevision()) {
+                        syncState[upstreamName].latestRevWeHaveFromThem=upstreamEntry.getRevision();
+                    }  // ensures that we know about the max revision number when we have processed all entries
+                    // special case: we have already synced that revision. nothing to do.
+                    if(syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[upstreamEntry.getUID()]===upstreamEntry.getRevision()) {
+                        console.log("- integration cut short - we already have this remote revision!");
+                        return;  // nothing to do - proceed to next entry
+                    }
+                    var localEntry=o.getEntryByUID(upstreamEntry.getUID());
+                    if(localEntry===undefined) {
+                        // (a) No such entry at this end. Add.
+                        var e=upstreamEntry.clone(o);  // this will also give it a (local) revision number
+                        o.addEntry(e);
+                        syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()]=e.getRevision(); 
+                        syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[e.getUID()]=upstreamEntry.getRevision(); 
+                          // ...we're in sync!
+                        console.log('added the previously non-existing entry',e.dump());
+                    } else {
+                        if(!o.hasUnsyncedModifications(localEntry,upstreamName)) {
+                            // (b) We have such an entry, but ours is older (and locally 
+                            // unmodified since last sync). Overwrite.
+                            var e=upstreamEntry.clone(o);
+                            //e.setRevision(0); // 0 indicates "unchanged since last sync"
+                            o.updateEntry(e);
+                            syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()]=e.getRevision();
+                            syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[e.getUID()]=upstreamEntry.getRevision();
+                            console.log('updated our outdated entry',e.dump());
+                        } else {
+                            // (c) Both versions have changed. Merge.
+                            localEntry.setLogentry('MERGED: upstream: '+upstreamEntry.getLogentry()+' local:'+localEntry.getLogentry());
+                            // @todo merge all fields, only highlight the ones that are actually different
+                            localEntry.markAsModified();
+                            o.updateEntry(localEntry);
+                        }
+                    }
+                });
+                
+                // trigger next part of the syncing algorithm
+                sync_algA_pt2(upstreamName,upstreamStub);
             }
-            var localEntry=o.getEntryByUID(upstreamEntry.getUID());
-            if(localEntry===undefined) {
-                // (a) No such entry at this end. Add.
-                var e=upstreamEntry.clone(o);  // this will also give it a (local) revision number
-                o.addEntry(e);
-                syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()]=e.getRevision(); 
-                syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[e.getUID()]=upstreamEntry.getRevision(); 
-                  // ...we're in sync!
-                console.log('added the previously non-existing entry',e.dump());
-            } else {
-                if(!o.hasUnsyncedModifications(localEntry,upstreamName)) {
-                    // (b) We have such an entry, but ours is older (and locally 
-                    // unmodified since last sync). Overwrite.
-                    var e=upstreamEntry.clone(o);
-                    //e.setRevision(0); // 0 indicates "unchanged since last sync"
-                    o.updateEntry(e);
-                    syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()]=e.getRevision();
-                    syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[e.getUID()]=upstreamEntry.getRevision();
-                    console.log('updated our outdated entry',e.dump());
-                } else {
-                    // (c) Both versions have changed. Merge.
-                    localEntry.setLogentry('MERGED: upstream: '+upstreamEntry.getLogentry()+' local:'+localEntry.getLogentry());
-                    // @todo merge all fields, only highlight the ones that are actually different
-                    localEntry.markAsModified();
-                    o.updateEntry(localEntry);
-                }
-            }
-        });
-        
-        // trigger next part of the syncing algorithm
-        sync_algA_pt2(upstreamName,upstreamStub);
+        );
     };
 
     // algorithm (A)
     // part 2: commit local modifications upstream
+    // new version: async (@todo):
+    //   - get all entries (store their UIDs on a stack)
+    //   - then process them one by one, proceeding to the next item when the previous
+    //     one has been done. terminates when stack is empty. might process in batches
+    //     (instead of single items).
+    //  ## CONTINUE HERE ##
     var sync_algA_pt2=function(upstreamName,upstreamStub)
     {
         console.info('sync part 2');
