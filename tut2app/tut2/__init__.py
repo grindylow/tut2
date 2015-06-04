@@ -21,3 +21,4 @@ f.close()
 toolbar = DebugToolbarExtension(app)
 
 import tut2.views
+import tut2.model

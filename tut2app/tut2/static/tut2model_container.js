@@ -307,7 +307,7 @@ function tut2_createTutModel(params)
             }
         });
         syncState[upstreamName].ourLatestRevAfterLastSync=newLatestRevAfterLastSync;
-        notifyListenersOfSyncProgress(2,upstreamName); // 1=sync completed successfully
+        notifyListenersOfSyncProgress(2,upstreamName); // 2=sync completed successfully
         console.log('sync state:',syncState);
     };
 

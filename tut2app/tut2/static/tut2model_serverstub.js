@@ -1,6 +1,6 @@
 /* tut2 server stub
 
-   Allows access to the server-side model (container), for syncing.
+   Provides access to the server-side model (container), for syncing.
 */
 
 'use strict';
@@ -25,8 +25,7 @@ function tut2_createServerModelStub(params)
      */
     o.queryEntries=function(fromRev,callback) {
         console.log("serverStub.queryEntries()",fromRev);
-        // we use a synchronous ajax call for now (bad!!), then
-        // @todo we need to rewrite this to run asynchronously.
+        // was: we use a synchronous ajax call (bad)
         var handle = $.ajax({
             dataType: "json",
             url: "/api_queryentries",
@@ -53,10 +52,26 @@ function tut2_createServerModelStub(params)
      *  @returns (Server-side) revision number of the new entry
      */
     o.addOrUpdateEntry=function(entry) {
-        // @todo implement
         // @todo convert to asynchronous
-        console.log("serverStub.addOrUpdateEntry()",entry);
-        return undefined;
+        // @todo change interface to allow adding multiple entries in one go
+        console.log("serverStub.addOrUpdateEntry()",entry.pickleToDict());
+        // BAD: we use a synchronous ajax call (bad)
+        // @todo convert to async
+        var handle = $.ajax({
+            dataType: "json",
+            url: "/api_addorupdateentry",
+            contentType: "application/json",
+            cache:false,
+            method: "post",
+            data: JSON.stringify({entries:[entry.pickleToDict()]}),
+            //success: success
+            async: true,
+            success: function(result) {
+                console.info("retrieved via AJAX asynchronous:",result);
+            }
+        });
+        console.info("serverStub.addOrUpdateEntry() terminated");
+        return undefined;  // @todo return server-side revision number
     };
 
     // o.that=o;   do we need this? what for? will it prevent GC (bad!)?

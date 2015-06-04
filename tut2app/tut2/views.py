@@ -1,8 +1,11 @@
 from flask import render_template,request,flash,redirect,url_for,jsonify
 from flask.ext.login import login_user,logout_user,login_required
 from tut2 import app,login_manager,model
+from pymongo import MongoClient
 
 login_manager.login_view = "login"
+
+mymodel = model.Model()
 
 @app.route("/")
 def hello():
@@ -74,10 +77,29 @@ def api_queryentries():
                   'uid': 'db98eff3-8a04-4165-b8c0-76e30ae9fdf8' }
               ]
 
-    fromRev = request.args.get('fromrev', 0, type=int)
+    fromrev = request.args.get('fromrev', 0, type=int)
+    entries = mymodel.queryEntries(fromrev)
     r = { 'r':0,    # 0=OK, 1=NOT_AUTHORISED, ... (or use HTTP ERROR CODES!!!!)
           'entries': entries,
-          'debug_fromRev': fromRev }
+          'debug_fromrev': fromrev }
+    return jsonify(r)
+
+
+@app.route("/api_addorupdateentry",methods=['POST'])
+# @todo @login_required
+def api_addorupdateentry():
+    """Add the given entry (or update it if it exists already)
+       @returns Server-side revision number of newly created (updated) entry
+       see tut2model_serverstub:addOrUpdateEntry()
+    """
+    entries = request.get_json()['entries']   # this is the parsed JSON string (i.e. a dict)
+    print request.json
+
+    mymodel.addOrUpdateEntries(entries)
+
+    r = { 'r':0,    # 0=OK, 1=NOT_AUTHORISED, ... (or use HTTP ERROR CODES!!!!)
+            # [...]
+        }
     return jsonify(r)
 
 @app.route("/")
