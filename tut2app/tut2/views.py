@@ -1,8 +1,11 @@
 from flask import render_template,request,flash,redirect,url_for,jsonify
-from flask.ext.login import login_user,logout_user,login_required
-from tut2 import app,login_manager,model
+from flask_login import login_user,logout_user,login_required,LoginManager
+from tut2 import app
+#from tut2 import login_manager
+from tut2 import model
 from pymongo import MongoClient
 
+login_manager = LoginManager()
 login_manager.login_view = "login"
 
 mymodel = model.Model()
@@ -93,7 +96,7 @@ def api_addorupdateentry():
        see tut2model_serverstub:addOrUpdateEntry()
     """
     entries = request.get_json()['entries']   # this is the parsed JSON string (i.e. a dict)
-    print request.json
+    print(request.json)
 
     mymodel.addOrUpdateEntries(entries)
 

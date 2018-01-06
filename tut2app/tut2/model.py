@@ -5,17 +5,27 @@ The data model(s)
 from tut2 import app
 from pymongo import MongoClient
 
+import logging
+logger = logging.getLogger(__name__)
+
 class Model:
 
     next_rev_no = 0    # to be initialised from DB in __init__()
 
     def __init__(self):
-        print "model initialising..."
+        logger.info("model initialising...")
+        logger.debug("creating MongoClient...")
         client = MongoClient()
+        logger.debug("creating database accessor...")
         db = client.tut2db
+        logger.debug("retrieving latest revision number...")
         entry = db.tut2entries.find_one(sort=[("revision", -1)])
-        self.next_rev_no = entry['revision'] + 1
-        print "Next revision number initialised to %s." % self.next_rev_no
+        if not entry:
+            logger.warning("Empty database. Initialising next global revision number to 21.")
+            self.next_rev_no = 21
+        else:
+            self.next_rev_no = entry['revision'] + 1
+        logger.info("Next revision number initialised to %s." % self.next_rev_no)
 
     def queryEntries(self,fromrev=0):
         client = MongoClient()
@@ -38,7 +48,7 @@ class Model:
         db = client.tut2db
 
         for e in entries:
-            print "e:",e
+            logger.debug("e:",e)
             e['_id'] = e['uid']    # translate tut2 UID to mongodb primary key
             del e['uid']
             e['revision'] = self.next_rev_no
@@ -52,20 +62,20 @@ class Model:
             # entirely new one?
             # 1. Check if entry with given uid exists already
             existingentry = db.tut2entries.find_one({'_id':e['_id']})
-            print existingentry
+            logger.debug(existingentry)
             
             # 2. Either create a new entry, or update the existing one
             if existingentry:
-                print "entry exists"
+                logger.debug("entry exists")
                 id = e['_id']
                 del e['_id']  # prevent "Mod on _id not allowed"
                 result = db.tut2entries.update({'_id':id}, {"$set": e}, upsert=False)
                 # @todo investigate if we could simply use update() with upsert=true for both cases
-                print "result:",result
+                logger.debug("result: %s" % result)
             else:
-                print "entry doesn't exist yet"
+                logger.debug("entry doesn't exist yet")
                 result = db.tut2entries.insert_one(e)
-                print "result:",result
+                logger.debug("result: %s",result)
         #
         #  continue here !!!!
         #

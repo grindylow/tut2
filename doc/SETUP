@@ -16,13 +16,14 @@ Python/Virtualenv setup
 
   In .../virtualenvs:
 
-    virtualenv tut2env
+    virtualenv tut2env -p python3
     source tut2env/bin/activate
 
 
 Other (Ubuntu) Packages
 -----------------------
 
+  sudo apt-get install mongodb
 
 
 
@@ -31,6 +32,9 @@ Python required packages
 
 Frameworks, interface layers, etc.:
   pip install flask flask-debugtoolbar flask-login
+
+For database backend:
+  pip install pymongo
 
 //  pip install flask-mongoengine
 

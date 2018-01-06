@@ -1,11 +1,11 @@
 import os
 from flask import Flask
 from flask_debugtoolbar import DebugToolbarExtension
-from flask.ext.login import *
+#from flask_login import *
 
 app = Flask(__name__)
-login_manager = LoginManager()
-login_manager.init_app(app)
+#login_manager = LoginManager()
+#login_manager.init_app(app)
 
 # the toolbar is only enabled in debug mode:
 #app.debug = True
