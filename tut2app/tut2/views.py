@@ -1,12 +1,10 @@
 from flask import render_template,request,flash,redirect,url_for,jsonify
-from flask_login import login_user,logout_user,login_required,LoginManager
+from flask_login import login_user,logout_user,login_required
 from tut2 import app
-#from tut2 import login_manager
+from tut2 import login_manager
 from tut2 import model
+from tut2 import model_user
 from pymongo import MongoClient
-
-login_manager = LoginManager()
-login_manager.login_view = "login"
 
 mymodel = model.Model()
 
@@ -16,25 +14,26 @@ def hello():
 
 @login_manager.user_loader
 def load_user(userid):
-    return model.User.retrieve_based_on_id(userid)
+    return model_user.User.retrieve_based_on_id(userid)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.form:
         # login and validate the user...
-        user=model.User.retrieve_based_on_given_credentials(name=request.form['username'],password=request.form['password'])
+        user = model_user.User.retrieve_based_on_given_credentials(name=request.form['username'],password=request.form['password'])
         if not user:
             flash("invalid credentials")
         else:
             login_user(user)
             flash("Logged in successfully.")
-        return redirect(request.args.get("next") or url_for("details"))
+            return redirect(url_for("details"))
+            # @future: could request.args.get("next") or , but make sure to VALIDATE next!
     return render_template("login.html")
 
 @app.route("/logout")
-#@login_required
 def logout():
     logout_user()
+    flash('Logged out.')
     return redirect(url_for("details"))
 
 @app.route("/forloggedinonly")
@@ -64,7 +63,7 @@ def api_queryentries():
        see tut2model_serverstub:queryEntries()
     """
 
-    # @todo retrieve requested entries from database
+    # entries will look something like this:
     entries = [ 
                 { 'deleted': False,
                   'logentry': 'First entry from server',
@@ -84,7 +83,7 @@ def api_queryentries():
     entries = mymodel.queryEntries(fromrev)
     r = { 'r':0,    # 0=OK, 1=NOT_AUTHORISED, ... (or use HTTP ERROR CODES!!!!)
           'entries': entries,
-          'debug_fromrev': fromrev }
+          '_debug_fromrev': fromrev }
     return jsonify(r)
 
 

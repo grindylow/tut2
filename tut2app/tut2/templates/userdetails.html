@@ -19,15 +19,16 @@
   {% endif %}
 {% endwith %}    
     <h1>User Details</h1>
-{% if current_user.is_authenticated() %}
-  Hi {{ current_user.name }}!
+{% if current_user.is_authenticated %}
+  Hi {{ current_user.fullname }}!<br />
 {% endif %}
 
-    current_user.is_authenticated(): "{{ current_user.is_authenticated() }}" <br />
-    current_user.is_active(): "{{ current_user.is_active() }}" <br />
-    current_user.is_anonymous(): "{{ current_user.is_anonymous() }}" <br />
+    current_user.is_authenticated: "{{ current_user.is_authenticated }}" <br />
+    current_user.is_active: "{{ current_user.is_active }}" <br />
+    current_user.is_anonymous: "{{ current_user.is_anonymous }}" <br />
     current_user.get_id(): "{{ current_user.get_id() }}" <br />
     current_user.fullname: "{{ current_user.fullname }}" <br />
+    current_user._password: "{{ current_user._password }}" <br />
     current_user.schnuff: "{{ current_user.schnuff }}" <br />
     ...
   </body>
