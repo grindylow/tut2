@@ -40,18 +40,25 @@ class Model:
         return entries
 
     def addOrUpdateEntries(self,entries):
-        """Add/update the given entries, return their respective 
-        (server-side) revision numbers."""
+        """
+        Add/update the given entries, return their respective 
+        (server-side) revision numbers.
+        @todo handle errors
+        """
+        logger.info('addOrUpdateEntries()')
     
         # store entry in database
         client = MongoClient()
         db = client.tut2db
 
+        revnrs = []
+        
         for e in entries:
-            logger.debug("e:",e)
+            logger.debug("e: %s",e)
             e['_id'] = e['uid']    # translate tut2 UID to mongodb primary key
             del e['uid']
             e['revision'] = self.next_rev_no
+            revnrs.append(self.next_rev_no)
             self.next_rev_no += 1
 
             # @todo deal with global rev no properly:
@@ -62,11 +69,10 @@ class Model:
             # entirely new one?
             # 1. Check if entry with given uid exists already
             existingentry = db.tut2entries.find_one({'_id':e['_id']})
-            logger.debug(existingentry)
             
             # 2. Either create a new entry, or update the existing one
             if existingentry:
-                logger.debug("entry exists")
+                logger.debug("entry exists: %s", existingentry)
                 id = e['_id']
                 del e['_id']  # prevent "Mod on _id not allowed"
                 result = db.tut2entries.update({'_id':id}, {"$set": e}, upsert=False)
@@ -76,9 +82,6 @@ class Model:
                 logger.debug("entry doesn't exist yet")
                 result = db.tut2entries.insert_one(e)
                 logger.debug("result: %s",result)
-        #
-        #  continue here !!!!
-        #
-        # @todo return correct revision   numbers, and handle the return values!
 
+        return revnrs
 

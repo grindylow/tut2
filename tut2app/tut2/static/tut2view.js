@@ -368,7 +368,10 @@ function tut2_createDefaultView() {
                         console.log("SECTION HEADER NOT IDENTICAL OR NOT A SECTION HEADER AT ALL");
                         console.log("SIMPLY INSERTING A NEW SECTION HEADER");
                         // simply insert a new section header
-                        $(dom_targets[idx_view]).before(expectednode.slideDown(1000));  // not overly pretty (yet). certainly broken in Safari. Not tried other browsers yet.
+                        $(dom_targets[idx_view]).before(expectednode.slideDown(1000));
+			    // not overly pretty (yet).
+			    // certainly broken in Safari.
+			    // Not tried other browsers yet.
                     }
                 }
             }
@@ -427,15 +430,15 @@ function tut2_createDefaultView() {
             //c.append(node);
             
             // What's still missing:
-            // - create remaining nodes when reached end of view
-            // - delete remaining view entries when reached end of model
-            // - update node contents **if modified** (add modified flag to model?)
-            //    why is this important: primarily for newly added entries from 
-            //    template: time field needs to be updated. Also in the template itself.
-            //    although maybe we'll cheat when it comes to continuously updating the
-            //    time in the template. seems like a lot of overhead to sync every
-            //    second. although we can limit the syncing to "first few items"
-            //    unless there is a date change (section headers!)...
+            // done - create remaining nodes when reached end of view
+            // done - delete remaining view entries when reached end of model
+            // ? - update node contents **if modified** (add modified flag to model?)
+            //     why is this important: primarily for newly added entries from 
+            //     template: time field needs to be updated. Also in the template itself.
+            //     although maybe we'll cheat when it comes to continuously updating the
+            //     time in the template. seems like a lot of overhead to sync every
+            //     second. although we can limit the syncing to "first few items"
+            //     unless there is a date change (section headers!)...
 
             // next version: more intelligence when moving nodes, maybe based on
             // inside knowledge of timestamp

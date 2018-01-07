@@ -23,8 +23,8 @@ function tut2_createServerModelStub(params)
      *  updated version for async support: call a callback when the data is ready,
      *  don't return anything
      */
-    o.queryEntries=function(fromRev,callback) {
-        console.log("serverStub.queryEntries()",fromRev);
+    o.queryEntries = function(fromRev,callback) {
+        console.log("serverStub.queryEntries(fromRev=%s)",fromRev);
         // was: we use a synchronous ajax call (bad)
         var handle = $.ajax({
             dataType: "json",
@@ -51,10 +51,12 @@ function tut2_createServerModelStub(params)
 
      *  @returns (Server-side) revision number of the new entry
      */
-    o.addOrUpdateEntry=function(entry) {
+    o.addOrUpdateEntry = function(entry) {
         // @todo convert to asynchronous
         // @todo change interface to allow adding multiple entries in one go
+	// @todo make it cope with multiple entries at once (server can handle it already I think, albeit without sophisticated error handling)
         console.log("serverStub.addOrUpdateEntry()",entry.pickleToDict());
+	var newrev;
         // BAD: we use a synchronous ajax call (bad)
         // @todo convert to async
         var handle = $.ajax({
@@ -65,13 +67,15 @@ function tut2_createServerModelStub(params)
             method: "post",
             data: JSON.stringify({entries:[entry.pickleToDict()]}),
             //success: success
-            async: true,
+            async: false, //true,
             success: function(result) {
-                console.info("retrieved via AJAX asynchronous:",result);
+                console.info("retrieved via AJAX:",result);
+		newrev = result['revnrs'][0]
             }
         });
+        console.assert(newrev !== undefined, 'upstream revision number is defined');
         console.info("serverStub.addOrUpdateEntry() terminated");
-        return undefined;  // @todo return server-side revision number
+        return newrev;  // @todo return server-side revision number
     };
 
     // o.that=o;   do we need this? what for? will it prevent GC (bad!)?

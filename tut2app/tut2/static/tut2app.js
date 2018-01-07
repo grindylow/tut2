@@ -28,12 +28,19 @@ var mymodel;
         }
      
         console.info("mark B-2");
-        // remove this again in the end
+	
+        // Delete all statically coded (demo-)entries
+	// @future: there shouldn't be any in the final release template
         var c=$('#tut-entries-container');
         c.empty();
 
+	// (Debug)-Functionality
+	// @future: these should disappear from the final GUI, as all
+	// this will happen automatically.
         $("#updategui").on('click',null,null,function() {
-            myview.redrawTutEntriesUI([mymodel.createTemplateEntry()].concat(mymodel.getAllEntries()));
+            myview.redrawTutEntriesUI(
+		[mymodel.createTemplateEntry()]
+		.concat(mymodel.getAllEntries()));
         });
 
         $("#syncwithlocalstorage").on('click',null,null,function() {

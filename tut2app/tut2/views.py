@@ -95,12 +95,11 @@ def api_addorupdateentry():
        see tut2model_serverstub:addOrUpdateEntry()
     """
     entries = request.get_json()['entries']   # this is the parsed JSON string (i.e. a dict)
-    print(request.json)
-
-    mymodel.addOrUpdateEntries(entries)
+    revnrs = mymodel.addOrUpdateEntries(entries)
 
     r = { 'r':0,    # 0=OK, 1=NOT_AUTHORISED, ... (or use HTTP ERROR CODES!!!!)
-            # [...]
+          'revnrs':revnrs,
+          # [...]
         }
     return jsonify(r)
 
