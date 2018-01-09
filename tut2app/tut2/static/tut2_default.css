@@ -4,6 +4,7 @@ div.tut_entry {
     padding: 0.4em;
     margin-bottom: 0.2em;
     margin-left: 0.3em;
+    position: relative;   /* so that children can be positioned absolutely relative to this one, see http://www.wickham43.net/divboxes.php */
 }
 
 #tut-entry-template {
@@ -120,3 +121,38 @@ body {
     display: inline;
 }
 
+/* Action links for each entry */
+div.tut_insertabove {
+    g-vertical-align: top;
+    g-padding: 0 0 0 0;
+    background-color: #ddd;
+    opacity: 0.5;
+    display: none;  /* only show on :hover, see below */
+    position: absolute;
+    top: -20px;
+    left: 170px;
+}
+.tut_entry:hover div.tut_insertabove {
+    display: inline;
+}
+div.tut_insertabove:hover {
+    opacity: 1.0;
+}
+
+div.tut_insertbelow {
+    g-vertical-align: top;
+    g-padding: 0 0 0 0;
+    background-color: #ddd;
+    opacity: 0.5;
+    display: none;  /* only show on :hover, see below */
+    position: absolute;
+    top: +30px;
+    left: 170px;
+    z-index: +1;
+}
+.tut_entry:hover div.tut_insertbelow {
+    display: inline;
+}
+div.tut_insertbelow:hover {
+    opacity: 1.0;
+}

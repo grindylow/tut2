@@ -23,7 +23,7 @@ var mymodel;
             //mymodel.populateFromLocalStorage();
             //@todo we now sync with localStorage and no longer read it directly.
         } else {
-            mymodel.fillModelWithSomeExampleData();
+            //mymodel.fillModelWithSomeExampleData();
             //mymodel.populateFromLocalStorage();
         }
      
