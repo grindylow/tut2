@@ -146,17 +146,17 @@ function tut2_createDefaultView() {
     // The resume button of some entry or other was clicked.
     // Create a new entry with identical properties but current time
     // (and new uid of course).
-    var resumeClicked=function(event) {
+    var resumeClicked = function(event) {
         console.log("resumeClicked()");
-        var entryroot=$(this).parents(".tut_entry");
-        console.log("item with id "+$(entryroot).attr("id")+" is the resume source.");
-        var uid=decodeID($(entryroot).attr("id"));
-        if(uid=="entrytemplate") {
+        var entryroot = $(this).parents(".tut_entry");
+        console.log("item with id " + $(entryroot).attr("id") + " is the resume source.");
+        var uid = decodeID($(entryroot).attr("id"));
+        if(uid == "entrytemplate") {
             console.log("won't resume entrytemplate!!");
             return false;
         }
-        var src=mymodel.getEntryByUID(uid);
-        var newentry=src.createDuplicate();
+        var src = mymodel.getEntryByUID(uid);
+        var newentry = src.createDuplicate();
         var now = Date.now();
         newentry.setStarttimeUtcMs(now);
         mymodel.addEntry(newentry);
@@ -164,22 +164,75 @@ function tut2_createDefaultView() {
         return false; // event handled!
     };
 
-    // The delete button of an entry was clicked.
-    var removeClicked=function(event) {
-        console.log("removeClicked()");
-        var entryroot=$(this).parents(".tut_entry");
-        console.log("item with id "+$(entryroot).attr("id")+" is to be removed.");
-        var uid=decodeID($(entryroot).attr("id"));
-        if(uid=="entrytemplate") {
-            console.log("won't delete entrytemplate!!");
-            return false;
-        }
-        uid=mymodel.deleteEntry(uid);
+    // The "add entry above" button of some entry or other was clicked.
+    // Create a new entry and insert it above this one.
+    // @future: Create a new entry with identical properties and insert it
+    // above this one. This is the "clone to above" option, which somehow needs
+    // to be accessible from the GUI, for example with a separate button to the
+    // right of the regular "insert empty row above" button.
+    // @future: If user clicks this multiple times, multiple entries with the
+    // same timestamp will currently be created. Fix this by checking the next
+    // entry and ensuring we pick a timestamp in between the two. [flaw,not-bug]
+    var insertEntryAboveClicked = function(event) {
+        console.log("insertEntryAboveClicked()");
+	var uid = findUIDOfClickedEntry(this);
+        var src = mymodel.getEntryByUID(uid);
+        var newentry = src.createDuplicate();
+        var newstarttime = src.getStarttimeUtcMs() + 1000;
+        newentry.setStarttimeUtcMs(newstarttime);
+        mymodel.addEntry(newentry);
         self.redrawTutEntriesUI([mymodel.createTemplateEntry()].concat(mymodel.getAllEntries()));
         return false; // event handled!
     };
 
-    var itemClicked=function(event) {
+    // The "add entry below" is analogous to the "add entry above" (see code above)
+    //  in fact, the only difference to the code above is that we subtract a
+    //  second from the entry to be copied, instead of adding a second.
+    // @todo refactor commonalities into some more generic function, but we
+    // need to decide what functionality we actually want (see also comment for
+    // "add entry above", above.
+    var insertEntryBelowClicked = function(event) {
+        console.log("insertEntryBelowClicked()");
+	var uid = findUIDOfClickedEntry(this);
+        var src = mymodel.getEntryByUID(uid);
+        var newentry = src.createDuplicate();
+        var newstarttime = src.getStarttimeUtcMs() - 1000;
+        newentry.setStarttimeUtcMs(newstarttime);
+        mymodel.addEntry(newentry);
+        self.redrawTutEntriesUI([mymodel.createTemplateEntry()].concat(mymodel.getAllEntries()));
+        return false; // event handled!
+    };
+
+    /* Helper function for various "onClick" handlers:
+     * Determine (look up) the UID of the clicked entry.
+     */
+    var findUIDOfClickedEntry = function(clickeditem) {
+        var entryroot = $(clickeditem).parents(".tut_entry");
+        console.log("findUIDOfClickedEntry() found this entry UID: " + $(entryroot).attr("id"));
+        var uid = decodeID($(entryroot).attr("id"));
+        if(uid == "entrytemplate") {
+            console.warn("are you sure you want to do anything to/with the entrytemplate???");
+            //return false;
+        }
+	return uid;
+    };
+
+    // The delete button of an entry was clicked.
+    var removeClicked = function(event) {
+        console.log("removeClicked()");
+        var entryroot = $(this).parents(".tut_entry");
+        console.log("item with id " + $(entryroot).attr("id") + " is to be removed.");
+        var uid=decodeID($(entryroot).attr("id"));
+        if(uid == "entrytemplate") {
+            console.log("won't delete entrytemplate!!");
+            return false;
+        }
+        uid = mymodel.deleteEntry(uid);
+        self.redrawTutEntriesUI([mymodel.createTemplateEntry()].concat(mymodel.getAllEntries()));
+        return false; // event handled!
+    };
+
+    var itemClicked = function(event) {
         //$(this).addClass("tut_editing");
         var entryroot=$(this).parents(".tut_entry");
         var container=$(this).parents(".tut_container");
@@ -271,12 +324,16 @@ function tut2_createDefaultView() {
         var editboxes=$(root).find('.tut_editbox');
         var resumebuttonlinks=$(root).find('.tut_resume a');
         var removebuttonlinks=$(root).find('.tut_remove a');
+        var insertentryabovelinks=$(root).find('.tut_insertabove a');
+        var insertentrybelowlinks=$(root).find('.tut_insertbelow a');
         //containers.on('click',null,null,itemClicked);
         viewboxes.on('click',null,null,itemClicked);
         editboxes.on('blur',null,null,itemBlurred);
         editboxes.on('keypress',null,null,onKeyPress);
         resumebuttonlinks.on('click',null,null,resumeClicked);
         removebuttonlinks.on('click',null,null,removeClicked);
+	insertentryabovelinks.on('click',null,null,insertEntryAboveClicked);
+	insertentrybelowlinks.on('click',null,null,insertEntryBelowClicked);
     };
 
 
