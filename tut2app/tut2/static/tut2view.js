@@ -334,6 +334,36 @@ function tut2_createDefaultView() {
         removebuttonlinks.on('click',null,null,removeClicked);
 	insertentryabovelinks.on('click',null,null,insertEntryAboveClicked);
 	insertentrybelowlinks.on('click',null,null,insertEntryBelowClicked);
+
+	// drag time trials:
+	// references: http://luke.breuer.com/tutorial/javascript-drag-and-drop-tutorial.aspx
+	
+	var is_dragging = false;
+	var timeadjusters = $(root).find('.tut_adjstarttime a');
+	timeadjusters.on('mousedown',null,null,function(event) {
+	    console.log('md on adjuster');
+	    // Start tracking the mouse, and snapping the adjuster and/or time of current entry to certain grid values
+	    is_dragging = true;
+	    return false;  // indicate "we have handled it" -> otherwise user will start dragging the icon around
+	});
+	$(document).on('mouseup',null,null,function(event) {
+	    // todo needs to go on entire window/screen actually - user will drag all over the place!
+	    if(is_dragging)
+	    {
+		console.log('mu on document');
+		is_dragging = false;
+	    }
+	    // Stop tracking the mouse, set new time (or abort if too far from adjustment area/path)
+	    return false;  // indicate "we have handled it"
+	});
+	$(document).on('mousemove',null,null,function(event) {
+	    // mouse was moved
+	    if(is_dragging)
+	    {
+		console.log('mm on document:',event);
+	    }
+	    return false;  // indicate "we have handled it"
+	});
     };
 
 

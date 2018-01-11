@@ -156,3 +156,13 @@ div.tut_insertbelow {
 div.tut_insertbelow:hover {
     opacity: 1.0;
 }
+
+div.tut_adjstarttime {
+    position: absolute;
+    top: 10px;
+    left: 2px;
+    display: none;
+}
+.tut_entry:hover div.tut_adjstarttime {
+    display: inline;
+}
