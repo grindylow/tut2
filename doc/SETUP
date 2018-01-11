@@ -40,3 +40,20 @@ For database backend:
 
 Not strictly necessary, but very useful:
   pip install ipython
+
+
+MongoDB
+-------
+  # sed -i 's/^#auth = true/auth = true/g' /etc/mongodb.conf
+
+
+  mongo
+  use admin
+  db.createUser(
+    {
+      user: "theUserAdmin",
+      pwd: "abc123",
+      roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+    }
+  )
+
