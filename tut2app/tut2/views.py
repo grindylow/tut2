@@ -15,6 +15,7 @@ def hello():
 @login_manager.user_loader
 def load_user(userid):
     return model_user.User.retrieve_based_on_id(userid)
+login_manager.login_view = 'login'
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -26,7 +27,7 @@ def login():
         else:
             login_user(user)
             flash("Logged in successfully.")
-            return redirect(url_for("details"))
+            return redirect(url_for("track"))
             # @future: could request.args.get("next") or , but make sure to VALIDATE next!
     return render_template("login.html")
 
@@ -36,27 +37,18 @@ def logout():
     flash('Logged out.')
     return redirect(url_for("details"))
 
-@app.route("/forloggedinonly")
-@login_required
-def forloggedinonly():
-    return render_template("userdetails.html")
-
 @app.route("/details")
 def details():
     return render_template("userdetails.html")
 
 @app.route("/track")
+@login_required
 def track():
-    entries = [ 
-        {'starttime':'11:22'},
-        {'starttime':'11:20'},
-        {'starttime':'07:49'},
-        {'section':'2014-12-27 (Tuesday)','starttime':'17:25'},
-        {'starttime':'12:45'} ]
+    entries = []
     return render_template("page1.html",entries=entries)
 
 @app.route("/api_queryentries")
-# @todo @login_required
+@login_required
 def api_queryentries():
     """Retrieve (new) entries from server, starting from (server-side) revision fromRev.
        @returns Array of entries, not necessarily in any guaranteed order.
@@ -88,7 +80,7 @@ def api_queryentries():
 
 
 @app.route("/api_addorupdateentry",methods=['POST'])
-# @todo @login_required
+@login_required
 def api_addorupdateentry():
     """Add the given entry (or update it if it exists already)
        @returns Server-side revision number of newly created (updated) entry
@@ -102,7 +94,3 @@ def api_addorupdateentry():
           # [...]
         }
     return jsonify(r)
-
-@app.route("/")
-def index():
-    pass

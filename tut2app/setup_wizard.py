@@ -17,6 +17,7 @@ TUT2RW_USER_NAME = 'tut2rw'
 TUT2RO_USER_NAME = 'tut2ro'
 
 secrets = configparser.ConfigParser()
+secrets.optionxform = str  # preserve case in section/key names
 secrets['passwords'] = {}
 pwsection = secrets['passwords']
 
@@ -66,7 +67,8 @@ try:
                roles = ["userAdminAnyDatabase"])
 except pymongo.errors.DuplicateKeyError:
     OKish('already exists. moving on.')
-
+else:
+    OK()
 
 announce("Creating read/write user for adminstrating tut2 database...")
 pwd = makepassword()
@@ -98,6 +100,9 @@ announce("Writing %s..." % SECRETS_FILENAME)
 with open(SECRETS_FILENAME, 'w') as configfile:
     secrets.write(configfile)
 OK()
+
+print("Make sure you restart mongodb for changes to take effect.")
+print("You could use: sudo service mongodb restart")
     
 #logger.debug("retrieving latest revision number...")
 #entry = db.tut2entries.find_one(sort=[("revision", -1)])
