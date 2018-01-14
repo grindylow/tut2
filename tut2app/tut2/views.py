@@ -80,7 +80,7 @@ def api_queryentries():
               ]
 
     fromrev = request.args.get('fromrev', 0, type=int)
-    entries = mymodel.queryEntries(fromrev)
+    entries = mymodel.queryEntries(fromrev, current_user.get_uid())
     r = { 'r':0,    # 0=OK, 1=NOT_AUTHORISED, ... (or use HTTP ERROR CODES!!!!)
           'entries': entries,
           '_debug_fromrev': fromrev }

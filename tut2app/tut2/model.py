@@ -23,9 +23,9 @@ class Model:
             self.next_rev_no = entry['revision'] + 1
         logger.info("Next revision number initialised to %s." % self.next_rev_no)
 
-    def queryEntries(self,fromrev=0):
-        db = self.connect_to_database()
-        cursor = db.tut2entries.find({'revision':{'$gte':fromrev}})
+    def queryEntries(self,fromrev=0, user_uid='*invalid*uid*'):
+        db = tut2db.connect_to_database()
+        cursor = db.tut2entries.find({'revision':{'$gte':fromrev}, 'user':user_uid})
         entries = []
         for document in cursor:
             # translate uid from mongodb speech back to tut2 speech
@@ -43,7 +43,7 @@ class Model:
         logger.info('addOrUpdateEntries()')
     
         # store entry in database
-        db = self.connect_to_database()
+        db = tut2db.connect_to_database()
         revnrs = []
         
         for e in entries:
