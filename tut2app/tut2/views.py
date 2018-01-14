@@ -21,7 +21,9 @@ login_manager.login_view = 'login'
 def login():
     if request.form:
         # login and validate the user...
-        user = model_user.User.retrieve_based_on_given_credentials(name=request.form['username'],password=request.form['password'])
+        user = model_user.User.retrieve_based_on_given_credentials(
+            name = request.form['username'],
+            password = request.form['password'])
         if not user:
             flash("invalid credentials")
         else:

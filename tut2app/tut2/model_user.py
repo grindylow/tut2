@@ -1,5 +1,18 @@
+# A regular TUT2 user.
+#
+# Users are contained in the database.
+# Users have (login-)IDs and passwords. Internally, they are
+# referenced by UIDs.
+#
+# Currently, there is no provision for automatically creating
+# users - you will need to create them manually in the database.
+
 import logging
 logger = logging.getLogger(__name__)
+
+import hashlib
+import base64
+from tut2 import tut2db
 
 class User:
     def __init__(self):
@@ -31,31 +44,49 @@ class User:
     def get_uid(self):
         logger.debug("User.get_uid(%s) was called" % self.get_id())
         return self._tut2uid
+
+    def calc_hash(self,pwd):
+        """
+        Calculate hash from salt and given password.
+        Password needs to be in 'bytes' at this stage.
+        Return a base-64-encoded version of this hash value.
+        """
+        h = hashlib.sha512(self._salt + pwd)
+        return base64.b64encode(h.digest())
     
     def password_validates(self,password):
         """
         Is the given password the correct one for this user?
+        Passwords are stored as SHA2 hashes, salted with the salt
+        specified in the user entry.
         """
-        if self._password == password:
+        their_hash = self.calc_hash(password.encode('utf8'))
+        logger.info('Their hash is: %s' % their_hash)
+        logger.info('My hash is   : %s' % self._password_hash)
+        if their_hash == self._password_hash:
+            logger.info('Passwords match. Access granted for user "%s".' % self.username)
             return True
         return False
     
     @staticmethod
     def retrieve_based_on_id(id):
-        logger.info("lookup_based_on_id() was called with id '%s'"%id)
-        user_details={ u"klaus":{"fullname":"Klaus der Grosse",'password':'dieter','uid':'82787-111'},
-                       u"king":{"fullname":"King of the Kongo",'password':'kong',  'uid':'82787-222'}}
+        logger.info("retrieve_based_on_id() was called with id '%s'" % id)
         u = None
-        if id in user_details:
+        db = tut2db.connect_to_database()
+        entry = db.tut2users.find_one({'id':id})
+        logger.info("found entry: %s" % entry)
+
+        if entry:
             u = User()
             u._is_active=True
             u._is_authenticated=True
             u._is_anonymous=False
-            u._password = user_details[id]['password']   # this is a bad idea, will need resolving for final product (database)
-            u.fullname = user_details[id]['fullname']
+            u.fullname = entry['fullname']
             u.username = id
             # app-specific extensions
-            u._tut2uid = user_details[id]['uid']
+            u._tut2uid = entry['tut2_uid']
+            u._password_hash = entry['password_hash'].encode('utf8')
+            u._salt = entry['salt'].encode('utf8')
         logger.info('Returning user: %s' % u)
         return u
 
@@ -73,7 +104,4 @@ class User:
         if u.password_validates(password):
             return u
         return None
-
-        
-
     

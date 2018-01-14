@@ -3,14 +3,9 @@ The data model(s)
 """
 
 from tut2 import app
-from pymongo import MongoClient
-
-import configparser
-
+from tut2 import tut2db
 import logging
 logger = logging.getLogger(__name__)
-
-DB_USERNAME = 'tut2rw'
 
 class Model:
 
@@ -18,10 +13,7 @@ class Model:
 
     def __init__(self):
         logger.info("model initialising...")
-        logger.debug("Retrieving database login information")
-        self.cfg = configparser.ConfigParser()
-        self.cfg.read("secrets.conf")
-        db = self.connect_to_database()
+        db = tut2db.connect_to_database()
         logger.debug("retrieving latest revision number...")
         entry = db.tut2entries.find_one(sort=[("revision", -1)])
         if not entry:
@@ -31,19 +23,6 @@ class Model:
             self.next_rev_no = entry['revision'] + 1
         logger.info("Next revision number initialised to %s." % self.next_rev_no)
 
-    def connect_to_database(self):
-        """
-        Connect to our mongodb database as a read/write user.
-        Returns the instance of the connected PyMongo database connector.
-        Requires self.cfg to already be populated with this app's config file,
-        because this is where we will look up our database password.
-        """
-        password = self.cfg['passwords'][DB_USERNAME]
-        logger.debug("creating MongoClient...")
-        client = MongoClient(username=DB_USERNAME,password=password)
-        logger.debug("creating database accessor...")
-        return client.tut2db
-        
     def queryEntries(self,fromrev=0):
         db = self.connect_to_database()
         cursor = db.tut2entries.find({'revision':{'$gte':fromrev}})
