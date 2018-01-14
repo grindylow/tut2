@@ -55,7 +55,7 @@ class Model:
             entries.append(document)
         return entries
 
-    def addOrUpdateEntries(self,entries):
+    def addOrUpdateEntries(self, entries, user_uid='USER_UID_UNSPECIFIED'):
         """
         Add/update the given entries, return their respective 
         (server-side) revision numbers.
@@ -71,6 +71,9 @@ class Model:
             logger.debug("e: %s",e)
             e['_id'] = e['uid']    # translate tut2 UID to mongodb primary key
             del e['uid']
+            e['user'] = user_uid   # This is where entries get associated with a specific user id.
+                                   # No such thing exists in the client (browser) model, as it
+                                   # always belongs to the "current" user.
             e['revision'] = self.next_rev_no
             revnrs.append(self.next_rev_no)
             self.next_rev_no += 1
@@ -99,3 +102,42 @@ class Model:
 
         return revnrs
 
+    def generate_report(self):
+        """
+        Report generator. Specify details of what kind of report to generate
+        with the various arguments.
+        """
+
+        # The most common form of report is reporting the number of hours
+        # per project for a given timespan.
+        # Variations on this include
+        #  - excluding certain projects by pattern
+        #  - accumulating sub-projects under their respective main projects
+
+        # Any such report will always be evaluated on a per-user basis.
+
+        # The algorithm goes as follows:
+
+        # 1. Select first entry *pre-dating* (or falling exactly onto
+        #    the requested start time.
+        #    This will define the project that will accumulate hours
+        #    initially.
+        #    If no such entries - assume a default one, e.g. '_tut_pre_first_entry'.
+
+        # 2. Select next entry. Bill time between start and this entry to
+        #    the project determined above. Remember project for next iteration.
+
+        # 3. Keep selecting next entry until entry is *after* (or exactly
+        #    equal to) the requested end time, or no more entries exist.
+
+        # In fact, do it the other way around. Because that way we don't have
+        # to worry about race conditions between finding the "pre-dated"
+        # entry and finding all the rest of 'em.
+
+        # In SQL this would read something like
+        #  SELECT * FROM ENTRIES WHERE starttime_utc_ms <= report_end_time ORDER BY starttime_utc_ms
+
+        # ...and then keep reading from the iterator until we are past the
+        # start time... Or run a separate query with COUNT=1 for that, after all.
+        
+        

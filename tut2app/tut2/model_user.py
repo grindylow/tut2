@@ -6,6 +6,7 @@ class User:
         self._is_active=False
         self._is_authenticated=False
         self._is_anonymous=True
+        self._tut2uid = None
         self.username="John-Marshmallow"
 
     @property
@@ -27,6 +28,10 @@ class User:
         logger.debug("is_anonymous() was called")
         return self._is_anonymous
 
+    def get_uid(self):
+        logger.debug("User.get_uid(%s) was called" % self.get_id())
+        return self._tut2uid
+    
     def password_validates(self,password):
         """
         Is the given password the correct one for this user?
@@ -38,8 +43,8 @@ class User:
     @staticmethod
     def retrieve_based_on_id(id):
         logger.info("lookup_based_on_id() was called with id '%s'"%id)
-        user_details={ u"klaus":{"fullname":"Klaus der Grosse",'password':'dieter'},
-                       u"king":{"fullname":"King of the Kongo",'password':'kong'}}
+        user_details={ u"klaus":{"fullname":"Klaus der Grosse",'password':'dieter','uid':'82787-111'},
+                       u"king":{"fullname":"King of the Kongo",'password':'kong',  'uid':'82787-222'}}
         u = None
         if id in user_details:
             u = User()
@@ -48,18 +53,20 @@ class User:
             u._is_anonymous=False
             u._password = user_details[id]['password']   # this is a bad idea, will need resolving for final product (database)
             u.fullname = user_details[id]['fullname']
-            u.username=id
+            u.username = id
+            # app-specific extensions
+            u._tut2uid = user_details[id]['uid']
         logger.info('Returning user: %s' % u)
         return u
 
     @staticmethod
-    def retrieve_based_on_given_credentials(name=None,password=None):
+    def retrieve_based_on_given_credentials(name=None, password=None):
         """
         Check if (name,password) tuple identifies a valid user,
         if so, return a User object representing that user.
         If not, return None
         """
-        logger.info("retrieve() was called with name='%s'"%name)
+        logger.info("retrieve() was called with name='%s'" % name)
         u = User.retrieve_based_on_id(name)
         if not u:
             return None

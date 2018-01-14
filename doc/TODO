@@ -2,6 +2,18 @@
 TODO
 ====
 
+Handle multiple users.
+
+Basic reporting
+
+Calculate duration in GUI
+
+Proper editing of start time in GUI
+
+Drag-drop-editing of start time in GUI
+
+
+
 Consider if we really need the "last synced" Sync State entries, or if they're
 simply an extra complication (speed optimisation).
 
@@ -13,6 +25,13 @@ the first refresh. Fix!
 Convert syncing algorithm to asynchronous.
 
 Implement actual AJAX-syncing with server...
+
+User management
+
+User groups
+
+Support for user-defined time zone
+
 
 
 DONE

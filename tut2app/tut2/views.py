@@ -1,5 +1,5 @@
 from flask import render_template,request,flash,redirect,url_for,jsonify
-from flask_login import login_user,logout_user,login_required
+from flask_login import login_user,logout_user,login_required,current_user
 from tut2 import app
 from tut2 import login_manager
 from tut2 import model
@@ -41,6 +41,12 @@ def logout():
 def details():
     return render_template("userdetails.html")
 
+@app.route("/reports")
+@login_required
+def reports():
+    report = mymodel.generate_report()   # @future: startdate,enddate,timezone,etc,etc
+    return render_template('report_generic.html')
+
 @app.route("/track")
 @login_required
 def track():
@@ -79,7 +85,7 @@ def api_queryentries():
     return jsonify(r)
 
 
-@app.route("/api_addorupdateentry",methods=['POST'])
+@app.route("/api_addorupdateentry", methods=['POST'])
 @login_required
 def api_addorupdateentry():
     """Add the given entry (or update it if it exists already)
@@ -87,7 +93,7 @@ def api_addorupdateentry():
        see tut2model_serverstub:addOrUpdateEntry()
     """
     entries = request.get_json()['entries']   # this is the parsed JSON string (i.e. a dict)
-    revnrs = mymodel.addOrUpdateEntries(entries)
+    revnrs = mymodel.addOrUpdateEntries(entries, current_user.get_uid())
 
     r = { 'r':0,    # 0=OK, 1=NOT_AUTHORISED, ... (or use HTTP ERROR CODES!!!!)
           'revnrs':revnrs,
