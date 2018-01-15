@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 DB_USERNAME = 'tut2rw'
+_db = None
 
 def connect_to_database():
     """
@@ -25,3 +26,16 @@ def connect_to_database():
     client = MongoClient(username=DB_USERNAME, password=password)
     logger.debug("creating database accessor...")
     return client.tut2db
+
+def get_db():
+    """
+    Retrieve a reference to the ("global") database connector. Connect
+    to database if not connected yet.
+    """
+    global _db
+    if _db is None:
+        logger.info('get_db(): No database connected (yet). Connecting...')
+        _db = connect_to_database()
+    else:
+        logger.info('get_db(): Returning a reference to existing DB connector.')
+    return _db

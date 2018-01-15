@@ -72,7 +72,7 @@ class User:
     def retrieve_based_on_id(id):
         logger.info("retrieve_based_on_id() was called with id '%s'" % id)
         u = None
-        db = tut2db.connect_to_database()
+        db = tut2db.get_db()
         entry = db.tut2users.find_one({'id':id})
         logger.info("found entry: %s" % entry)
 

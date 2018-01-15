@@ -7,6 +7,7 @@ from tut2.model import users
 from pymongo import MongoClient
 
 mymodel = model.Model()
+login_manager.login_view = 'login'
 
 @app.route("/")
 def hello():
@@ -15,7 +16,6 @@ def hello():
 @login_manager.user_loader
 def load_user(userid):
     return users.User.retrieve_based_on_id(userid)
-login_manager.login_view = 'login'
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

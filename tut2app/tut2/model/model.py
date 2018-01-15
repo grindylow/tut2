@@ -13,7 +13,7 @@ class Model:
 
     def __init__(self):
         logger.info("model initialising...")
-        db = tut2db.connect_to_database()
+        db = tut2db.get_db()
         logger.debug("retrieving latest revision number...")
         entry = db.tut2entries.find_one(sort=[("revision", -1)])
         if not entry:
@@ -24,7 +24,7 @@ class Model:
         logger.info("Next revision number initialised to %s." % self.next_rev_no)
 
     def queryEntries(self,fromrev=0, user_uid='*invalid*uid*'):
-        db = tut2db.connect_to_database()
+        db = tut2db.get_db()
         cursor = db.tut2entries.find({'revision':{'$gte':fromrev}, 'user':user_uid})
         entries = []
         for document in cursor:
@@ -43,7 +43,7 @@ class Model:
         logger.info('addOrUpdateEntries()')
     
         # store entry in database
-        db = tut2db.connect_to_database()
+        db = tut2db.get_db()
         revnrs = []
         
         for e in entries:

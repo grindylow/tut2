@@ -9,7 +9,6 @@ login_manager.init_app(app)
 
 # the toolbar is only enabled in debug mode:
 #app.debug = True
-# runserver.py does this for us
 
 # set a 'SECRET_KEY' to enable the Flask session cookies
 # we read the key from a file, which we exclude from
