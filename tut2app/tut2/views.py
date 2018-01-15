@@ -2,8 +2,8 @@ from flask import render_template,request,flash,redirect,url_for,jsonify
 from flask_login import login_user,logout_user,login_required,current_user
 from tut2 import app
 from tut2 import login_manager
-from tut2 import model
-from tut2 import model_user
+from tut2.model import model
+from tut2.model import users
 from pymongo import MongoClient
 
 mymodel = model.Model()
@@ -14,20 +14,20 @@ def hello():
 
 @login_manager.user_loader
 def load_user(userid):
-    return model_user.User.retrieve_based_on_id(userid)
+    return users.User.retrieve_based_on_id(userid)
 login_manager.login_view = 'login'
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.form:
         # login and validate the user...
-        user = model_user.User.retrieve_based_on_given_credentials(
+        myuser = users.User.retrieve_based_on_given_credentials(
             name = request.form['username'],
             password = request.form['password'])
-        if not user:
+        if not myuser:
             flash("invalid credentials")
         else:
-            login_user(user)
+            login_user(myuser)
             flash("Logged in successfully.")
             return redirect(url_for("track"))
             # @future: could request.args.get("next") or , but make sure to VALIDATE next!
