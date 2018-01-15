@@ -83,6 +83,17 @@ function tut2_createDefaultView() {
         ' ('+dayName(d)+')';
     };
 
+    // Take a Date object and turn it into an ISO data string like "2007-04-05T12:30:45.765-02:00"
+    var toISO8601 = function(d) {
+	return d.toISOString();
+	/* @future: make it display date in current timezone */
+    };
+
+    // Take a ISO time string and convert it into "ms since Javascript epoch".
+    var fromISO8601 = function(isostr) {
+	return Date.parse(isostr);  /* @future: "using Date.parse() is strongly discouraged" */
+    };
+
     // get the name of the day
     var dayName=function(d) {
         var names=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -269,7 +280,8 @@ function tut2_createDefaultView() {
         } else if($(edit).hasClass("tut_proj_edit")) {
             val=entry.getProject();
         } else if($(edit).hasClass("tut_starttime_edit")) {
-            val=entry.getStarttimeUtcMs();
+            var ms = entry.getStarttimeUtcMs();
+	    val = toISO8601(new Date(ms));
         } else {
             console.log("don't know this field");
             alert("sorry don't know this field");
@@ -293,7 +305,8 @@ function tut2_createDefaultView() {
         } else if($(this).hasClass("tut_proj_edit")) {
             entry.setProject(val);
         } else if($(this).hasClass("tut_starttime_edit")) {
-            entry.setStarttimeUtcMs(parseInt(val));
+	    var ms = fromISO8601(val);
+            entry.setStarttimeUtcMs(ms);
         } else {
             console.log("cannot store this field");
             alert("sorry cannot store - don't know how");

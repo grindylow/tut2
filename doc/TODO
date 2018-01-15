@@ -2,8 +2,6 @@
 TODO
 ====
 
-Handle multiple users.
-
 Basic reporting
 
 Calculate duration in GUI
@@ -36,6 +34,8 @@ Support for user-defined time zone
 
 DONE
 ====
+
+Handle multiple users.
 
 Implement "resume" button.
 Implement "delete" button.
