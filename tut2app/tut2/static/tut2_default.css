@@ -7,6 +7,12 @@ div.tut_entry {
     position: relative;   /* so that children can be positioned absolutely relative to this one, see http://www.wickham43.net/divboxes.php */
 }
 
+div.tut_section_label {
+    margin-top: 0.8em;
+    margin-bottom: 0.2em;
+    font-weight: bold;
+}
+
 #tut-entry-template {
     display: none;
 }
@@ -159,8 +165,8 @@ div.tut_insertbelow:hover {
 
 div.tut_adjstarttime {
     position: absolute;
-    top: 10px;
-    left: 2px;
+    top: 5px;
+    left: 5px;
     display: none;
 }
 .tut_entry:hover div.tut_adjstarttime {
