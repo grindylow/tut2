@@ -1,13 +1,10 @@
-import os
+# a number of useful project-wide helper functions
 import configparser
 import string
 import random
 import logging
-from flask import Flask
-from flask_debugtoolbar import DebugToolbarExtension
-from flask_login import LoginManager
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 def get_flask_key():
     # set a 'SECRET_KEY' to enable the Flask session cookies
@@ -32,17 +29,3 @@ def get_flask_key():
         with open('secrets.conf','w') as f:
             cfg.write(f)
     return key
-
-app = Flask(__name__)
-login_manager = LoginManager()
-login_manager.init_app(app)
-
-# the toolbar is only enabled in debug mode:
-#app.debug = True
-
-app.config['SECRET_KEY'] = get_flask_key()
-
-toolbar = DebugToolbarExtension(app)
-
-import tut2.views
-import tut2.model

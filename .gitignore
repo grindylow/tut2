@@ -54,7 +54,6 @@ docs/_build/
 target/
 
 # Customised by Grindylow:
-flask_secret_key
 secrets.conf
 .idea
 *~

@@ -2,8 +2,8 @@
 The data model(s)
 """
 
-from tut2 import app
-from tut2 import tut2db
+from tut2app import app
+from tut2app import tut2db
 import logging
 logger = logging.getLogger(__name__)
 

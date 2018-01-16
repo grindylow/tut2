@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 import hashlib
 import base64
-from tut2 import tut2db
+from tut2app import tut2db
 
 class User:
     def __init__(self):

@@ -1,9 +1,9 @@
 from flask import render_template,request,flash,redirect,url_for,jsonify
 from flask_login import login_user,logout_user,login_required,current_user
-from tut2 import app
-from tut2 import login_manager
-from tut2.model import model
-from tut2.model import users
+from tut2app import app
+from tut2app import login_manager
+from tut2app.model import model
+from tut2app.model import users
 from pymongo import MongoClient
 
 mymodel = model.Model()
