@@ -73,9 +73,9 @@ function tut2_createServerModelStub(params)
 		newrev = result['revnrs'][0]
             }
         });
-        console.assert(newrev !== undefined, 'upstream revision number is defined');
+        console.assert(newrev !== undefined, 'Upstream revision number is undefined - most likely the update has failed.');
         console.info("serverStub.addOrUpdateEntry() terminated");
-        return newrev;  // @todo return server-side revision number
+        return newrev;
     };
 
     // o.that=o;   do we need this? what for? will it prevent GC (bad!)?

@@ -315,10 +315,15 @@ function tut2_createTutModel(params)
                 // add this entry to upstream
 		let rev = upstreamStub.addOrUpdateEntry(e);
 		console.log('...was added to upstream with revision number %s.', rev);
-                syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[e.getUID()] = rev;
-                // take note of the (local) revision number we synced
-                syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()] = e.getRevision();
-                // remember the highest (local) revision number we ever synced
+		if(rev) {
+                    syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[e.getUID()] = rev;
+                    // take note of the (local) revision number we synced
+                    syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()] = e.getRevision();
+                    // remember the highest (local) revision number we ever synced
+		    // /deleted/
+		} else {
+		    console.warn('Apparently we failed to sync this item this time around.');
+		}
             } else {
                 console.log(" - has no unsynced modifications. skipping.");
             }

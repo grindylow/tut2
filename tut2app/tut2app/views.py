@@ -6,7 +6,7 @@ from tut2app.model import model
 from tut2app.model import users
 from pymongo import MongoClient
 
-mymodel = model.Model()
+mymodel = model.Model()   # this might not be right - does it need to go into 'g'?
 login_manager.login_view = 'login'
 
 @app.route("/")

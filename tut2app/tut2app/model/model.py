@@ -2,26 +2,44 @@
 The data model(s)
 """
 
-from tut2app import app
-from tut2app import tut2db
 import logging
 logger = logging.getLogger(__name__)
 
-class Model:
+from tut2app import app
+from tut2app import tut2db
+import pymongo
 
-    next_rev_no = 0    # to be initialised from DB in __init__()
+class Model:
 
     def __init__(self):
         logger.info("model initialising...")
         db = tut2db.get_db()
-        logger.debug("retrieving latest revision number...")
-        entry = db.tut2entries.find_one(sort=[("revision", -1)])
+
+        # Ensure the database has a 'unique' constraint set up on revision field.
+        # This is needed for our handmade 'auto-incrementing' revision number.
+        # Note: Trying to (re)creating an existing index is overlooked gracefully by mongodb.
+        logger.info('Ensuring database schema is set up...')
+        db.tut2entries.create_index([('revision', pymongo.DESCENDING)], unique=True)
+        logger.info('...done')
+
+    def retrieve_next_rev_no(self, db):
+        """
+        We use what might be called 'opportunistic auto-increment' as described in the
+        mongodb manual: https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/
+        In other words: we attempt to insert a document with a revision number
+        one higher than what we found in the database an instant earlier. If this goes 
+        wrong, we try again, until we succeed. This relies on a 'unique' constraint being
+        set up on the 'revision' field.
+        """
+        logger.debug('retrieving latest revision number...')
+        entry = db.tut2entries.find_one(sort=[('revision', -1)], projection=('revision',))
         if not entry:
-            logger.warning("Empty database. Initialising next global revision number to 21.")
-            self.next_rev_no = 21
+            logger.warning('Empty database. First revision number is half the truth.')
+            return 21
         else:
-            self.next_rev_no = entry['revision'] + 1
-        logger.info("Next revision number initialised to %s." % self.next_rev_no)
+            next_rev_no = entry['revision'] + 1
+            logger.debug('Next revision should be %s. If you are quick.' % next_rev_no)
+            return next_rev_no
 
     def queryEntries(self,fromrev=0, user_uid='*invalid*uid*'):
         db = tut2db.get_db()
@@ -37,13 +55,15 @@ class Model:
     def addOrUpdateEntries(self, entries, user_uid='USER_UID_UNSPECIFIED'):
         """
         Add/update the given entries, return their respective 
-        (server-side) revision numbers.
-        @todo handle errors
+        (server-side) revision numbers, or None for all entries that were not 
+        updated/added.
+        NOTE: this is currently only ever called with one single entry in the list
+        of entries to add. Needs testing if we want to use add/update multi
+        functionality.
         """
         logger.info('addOrUpdateEntries()')
     
         # store entry in database
-        db = tut2db.get_db()
         revnrs = []
         
         for e in entries:
@@ -53,33 +73,57 @@ class Model:
             e['user'] = user_uid   # This is where entries get associated with a specific user id.
                                    # No such thing exists in the client (browser) model, as it
                                    # always belongs to the "current" user.
-            e['revision'] = self.next_rev_no
-            revnrs.append(self.next_rev_no)
-            self.next_rev_no += 1
-
-            # @todo deal with global rev no properly:
-            #   - either store in DB
-            #   - or let DB handle it entirely?
-
-            # do we want to update an existing entry, or create an
-            # entirely new one?
-            # 1. Check if entry with given uid exists already
-            existingentry = db.tut2entries.find_one({'_id':e['_id']})
-            
-            # 2. Either create a new entry, or update the existing one
-            if existingentry:
-                logger.debug("entry exists: %s", existingentry)
-                id = e['_id']
-                del e['_id']  # prevent "Mod on _id not allowed"
-                result = db.tut2entries.update({'_id':id}, {"$set": e}, upsert=False)
-                # @todo investigate if we could simply use update() with upsert=true for both cases
-                logger.debug("result: %s" % result)
-            else:
-                logger.debug("entry doesn't exist yet")
-                result = db.tut2entries.insert_one(e)
-                logger.debug("result: %s",result)
+            revno = self.addOrUpdateEntry(e)
+            revnrs.append(revno)
 
         return revnrs
+            
+    def addOrUpdateEntry(self, e):
+        # attempt to insert, see https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/
+        retries = 20
+        db = tut2db.get_db()
+
+        # do we want to update an existing entry, or create an
+        # entirely new one?
+        # 1. Check if entry with given uid exists already
+        existingentry = db.tut2entries.find_one({'_id':e['_id']})
+            
+        # 2. Either create a new entry, or update the existing one
+        result = None
+        if existingentry:
+            id = e['_id']
+            del e['_id']  # prevent "Mod on _id not allowed"
+            logger.debug("entry exists: %s", existingentry)
+            while retries:
+                retries = retries-1
+                revno = self.retrieve_next_rev_no(db)
+                e['revision'] = revno
+                try:
+                    result = db.tut2entries.update({'_id':id}, {"$set": e}, upsert=False)
+                    break
+                except pymongo.errors.DuplicateKeyError:
+                    logger.warning('duplicate key error on update() - trying again...')
+                    continue
+                # @todo investigate if we could simply use update() with upsert=true for both cases
+                # this currently fails because we then get a "mod on _id not allowed" error.
+        else:
+            logger.debug("entry doesn't exist yet")
+            while retries:
+                retries = retries-1
+                revno = self.retrieve_next_rev_no(db)
+                e['revision'] = revno
+                try:
+                    result = db.tut2entries.insert_one(e)
+                    break
+                except pymongo.errors.DuplicateKeyError:
+                    logger.warning('duplicate key error on insert_one() - trying again...')
+                    continue
+                        
+        logger.debug("result: %s",result)
+        if result is None:
+            logger.critical('FAILED to add or update entry %s. Giving up.' % e)
+            revno = None   # indicate that there is no valid server-side revno
+        return revno
 
     def generate_report(self):
         """
