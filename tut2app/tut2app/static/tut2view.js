@@ -28,7 +28,10 @@ function tut2_createDefaultView() {
 
     // Given an entry, create a DOM node for it, ready
     // for appending to the DOM.
-    var createTutEntryDOMNode=function(entry) {
+    // If given a "subsequent entry", also calculate
+    // the time distance to this next entry, and note this
+    // down in our entry's duration field.
+    var createTutEntryDOMNode = function(entry, subs_entry) {
         var template=$('#tut-entry-template');
         var node=template.clone();
         //node.removeAttr("id"); // will be replaced by next line of code, 
@@ -36,17 +39,23 @@ function tut2_createDefaultView() {
         //node.makevisible  // our template is invisible via CSS, but
         // the clones are automatically fine, because they have a 
         // different ID.
-        node.attr("id",encodeID(entry.getUID()));
-        node.data("revision",entry.getRevision());  // store currrent revision, ".data" is jQuery
+        node.attr("id", encodeID(entry.getUID()));
+        node.data("revision", entry.getRevision());  // store currrent revision, ".data" is jQuery
         node.find(".tut_project").html(entry.getProject());
         node.find(".tut_logentry").html(entry.getLogentry());
-        var d=new Date(entry.getStarttimeUtcMs());
-        var t=timeStr(d);
+        var d = new Date(entry.getStarttimeUtcMs());
+        var t = timeStr(d);
         node.find(".tut_starttime").html(t);
         // if this is the entry template, grey out the entries
         if(entry.getUID()=="entrytemplate") {
             node.find(".tut_viewbox").addClass("tut_notyetvalid");
         }
+	// calculate duration if given a "next entry"
+	if(subs_entry !== undefined) {
+	    var duration_ms = subs_entry.getStarttimeUtcMs() - entry.getStarttimeUtcMs();
+	    var duration_str = durationStr(duration_ms);
+	    node.find('.tut_duration').html(duration_str);
+	}
         console.log("created entry:");
         console.log(entry);
         addEventListeners(node);
@@ -70,19 +79,42 @@ function tut2_createDefaultView() {
 
     // Take a Date object and turn it into something like "12:51:02"
     var timeStr=function(d) {
-        return prefixWithZeroes(d.getHours(),2)+
-        ':'+prefixWithZeroes(d.getMinutes(),2)+
-        ':'+prefixWithZeroes(d.getSeconds(),2);
+        return prefixWithZeroes(d.getHours())+
+        ':'+prefixWithZeroes(d.getMinutes())+
+        ':'+prefixWithZeroes(d.getSeconds());
     };
 
     // Take a Date object and turn it into something like "2015-01-22"
     var dateStr=function(d) {
         return prefixWithZeroes(d.getFullYear(),4)+
-        '-'+prefixWithZeroes(d.getMonth()+1,2)+
-        '-'+prefixWithZeroes(d.getDate(),2)+
+        '-'+prefixWithZeroes(d.getMonth()+1)+
+        '-'+prefixWithZeroes(d.getDate())+
         ' ('+dayName(d)+')';
     };
 
+    // Take a duration in ms and turn it into something like "37d 8:11:27"
+    var durationStr = function(ms) {
+	var r = '';
+	var secs = 1000;
+	var mins = secs * 60;
+	var hours = mins * 60;
+	var days = hours * 24;
+	if(ms >= days) {
+	    r = r + Math.floor(ms / days) + 'd';
+	    ms = ms % days;
+	}
+	r = [r, Math.floor(ms/hours)].join(' ');
+	ms = ms % hours;
+	if(r == ' 0') {  // if no hours, don't display them at all
+	    r = Math.floor(ms / mins);
+	} else {
+	    r = r + ':' + prefixWithZeroes(Math.floor(ms / mins));
+	}
+	ms = ms % mins;
+	r = r + ':' + prefixWithZeroes(Math.floor(ms / secs));
+	return r;
+    }
+    
     // Take a Date object and turn it into an ISO data string like "2007-04-05T12:30:45.765-02:00"
     var toISO8601 = function(d) {
 	return d.toISOString();
@@ -100,7 +132,7 @@ function tut2_createDefaultView() {
         return names[d.getDay()];
     }
 
-    var prefixWithZeroes=function(v,d) {
+    var prefixWithZeroes=function(v, d=2) {
         while(v.toString().length<d) {
             v='0'+v;
         }
@@ -385,7 +417,7 @@ function tut2_createDefaultView() {
     // Create DOM elements for all time tracking entries.
     // Create section headings for each new day as needed.
     // only create what isn't there already
-    v.redrawTutEntriesUI=function(entries) {
+    v.redrawTutEntriesUI = function(entries) {
         // this (new) version will intelligently do a "one-way sync" from model to
         // HTML view.
         console.log("updating GUI");
@@ -415,6 +447,7 @@ function tut2_createDefaultView() {
         var idx_view=0;   // index into HTML nodes
         var traversed_all_model_entries=false;
         var traversed_all_view_nodes=false;
+	var prev_entry;   // during processing: the previous entry (i.e. the next entry, time-wise)
 
         console.log("dom_targets.length="+dom_targets.length);
         console.log("entries.length="+entries.length);
@@ -484,9 +517,10 @@ function tut2_createDefaultView() {
                 if($(dom_targets[idx_view]).find(".tut_section_label").length>0) {
                     // it's a section label, but we want an entry here! insert!
                     console.log("INSERTING NODE BEFORE EXISTING SECTION HEADER");
-                    var node=createTutEntryDOMNode(entry); /**CONTINUE**/
+                    var node = createTutEntryDOMNode(entry, prev_entry); /**CONTINUE**/
                     $(dom_targets[idx_view]).before(node);
                     idx_model++;
+		    prev_entry = entry;
                     continue;
                 }
             
@@ -514,7 +548,8 @@ function tut2_createDefaultView() {
                     idx_model++;
                 } else {
                     console.log("ENTRIES NOT IDENTICAL - SIMPLY INSERTING A NEW ONE BEFORE THE EXISTING ONE!");
-                    var node=createTutEntryDOMNode(entry);
+                    var node=createTutEntryDOMNode(entry, prev_entry);
+		    prev_entry = entry;
                     $(dom_targets[idx_view]).before(node.slideDown(1000));  // not overly pretty (yet). certainly broken in Safari. Not tried other browsers yet.
                     idx_model++;
                 }
@@ -522,7 +557,8 @@ function tut2_createDefaultView() {
                 // no more view modes to compare against - definitely simply add an entry!
                 //console.log("NOT IMPLEMENTED C");
                 console.log("APPENDING NODE TO END OF VIEW");
-                var node=createTutEntryDOMNode(entry);
+                var node=createTutEntryDOMNode(entry, prev_entry);
+		prev_entry = entry;
                 c.append(node);
                 idx_model++;
             }
