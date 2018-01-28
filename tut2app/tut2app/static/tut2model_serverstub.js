@@ -28,7 +28,7 @@ function tut2_createServerModelStub(params)
         // was: we use a synchronous ajax call (bad)
         var handle = $.ajax({
             dataType: "json",
-            url: "/api_queryentries",
+            url: "api_queryentries",
             cache:false,
             data: {"fromrev":fromRev},
             //success: success
@@ -61,7 +61,7 @@ function tut2_createServerModelStub(params)
         // @todo convert to async
         var handle = $.ajax({
             dataType: "json",
-            url: "/api_addorupdateentry",
+            url: "api_addorupdateentry",
             contentType: "application/json",
             cache:false,
             method: "post",
