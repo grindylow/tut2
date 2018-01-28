@@ -8,10 +8,10 @@ All times are specified in "ms since epoch" (and are therefore, per
 definition, always in UTC).
 
 An entry consists of
-- start time
-- project
-- log message
-- user (who created this entry)
+ - start time
+ - project
+ - log message
+ - user (who created this entry)
 
 For any given user, there can be no two entries with identical start
 time. That is, start time can be used as a (unique) key into that
@@ -47,7 +47,8 @@ following actions take place:
    created entry.
 
 A new entry will be created immediately below the template entry,
-when: 
+when:
+
  * A resume icon is clicked.
 
 Internally, the following synchronisation logic is implemented:

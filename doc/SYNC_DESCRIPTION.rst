@@ -26,7 +26,7 @@ For the time period from STARTTIME up to MOST RECENT ENTRY
 Entries that don't exist in (remote) are copied to (remote).
 Potential issue: (remote) doesn't reach far enough back
 But: in that case, the revision number will remain the same,
-     so things will go well the next time around
+so things will go well the next time around
 
 (1.2)
 Entries that don't exist in (me) are copied to (me).
@@ -74,7 +74,7 @@ For each entry-ID, once of the following cases arises:
 
 
 Exploring an alternative approach (A): repository-wide revision numbers for "upstream"
-======================================================================================
+--------------------------------------------------------------------------------------
 
 Each client maintains a record of "upstream" revision numbers for each Entry
 in the local database.
@@ -84,8 +84,7 @@ Upstream revision numbers are always monotonically increasing.
 Whenever a sync is desired/scheduled/requested, the following happens:
 
 1. Client requests any elements with 
-    * revision number > biggest currently stored revision number
-    and
+    * revision number > biggest currently stored revision number, and
     * time in desired time range (usually something like "anything newer than ...")
 
     Upstream repo responds with list of Entries. Those get integrated into local repo.

@@ -44,6 +44,8 @@ Not strictly necessary, but very useful:
 
 MongoDB
 -------
+::
+   
   # sed -i 's/^#auth = true/auth = true/g' /etc/mongodb.conf
 
 
