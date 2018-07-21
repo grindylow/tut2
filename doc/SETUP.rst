@@ -5,7 +5,7 @@ TUT2 is implemented in Python, and utilises a number of
 libraries. The following sections describe one possible way of setting
 up a working environment for TUT2.
 
-This assumes a basic Ubuntu 12.04 (LTS) setup to begin with.
+This assumes a basic Ubuntu 16.04 (LTS) setup to begin with.
 
 
 Python/Virtualenv setup

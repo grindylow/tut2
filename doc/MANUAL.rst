@@ -18,6 +18,23 @@ like to change. Then either select the desired contents from the
 autosuggest-dropdown, or manually enter text.
 
 
+Project Names
+-------------
+
+TUT2 does not impose any rules as to what your project names should 
+look like. You may use a simple unstructured approach ("building sandcastle",
+"cleaning", "procrastinating"). 
+
+However, adhering to some naming convention will give you additional
+benefits, particularly in the area of reporting.
+
+A recommended scheme for naming your projects is to stick with some
+hierarchical 
+"PROJECT.SUBPROJECT (COMMENT)" naming scheme. TUT2 can report total project 
+time as well as time spent on individual subprojects out of the box with 
+such an approach.
+
+
 Settings
 --------
 
@@ -33,7 +50,6 @@ particular, configure
 
  * check/sync time (verify that local browser time is anything like
    actual current time)
-
 
 
 Reports
@@ -66,3 +82,4 @@ Administrators of OUs can invite users to join an OU.
 
 Users can request to join any OU, but the OU administrators will have
 to approve the request.
+
