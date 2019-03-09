@@ -58,3 +58,4 @@ secrets.conf
 .idea
 *~
 _build/
+doc/out/

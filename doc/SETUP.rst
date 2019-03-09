@@ -10,11 +10,12 @@ This assumes a basic Ubuntu 16.04 (LTS) setup to begin with.
 
 Python/Virtualenv setup
 -----------------------
-  ...as documented on http://www.virtualenv.org/en/latest/
+
+...as documented on http://www.virtualenv.org/en/latest/::
 
     sudo apt-get install python-pip python-virtualenv
 
-  In .../virtualenvs:
+In .../virtualenvs::
 
     virtualenv tut2env -p python3
     source tut2env/bin/activate
@@ -23,27 +24,32 @@ Python/Virtualenv setup
 Other (Ubuntu) Packages
 -----------------------
 
-  sudo apt-get install mongodb
+::
+   
+    sudo apt-get install mongodb
 
 
 
 Python required packages
 ------------------------
 
-Frameworks, interface layers, etc.:
-  pip install flask flask-debugtoolbar flask-login
+Frameworks, interface layers, etc.::
 
-For database backend:
-  pip install pymongo
+    pip install flask flask-debugtoolbar flask-login
 
-//  pip install flask-mongoengine
+For database backend::
 
-Not strictly necessary, but very useful:
+    pip install pymongo
+    #pip install flask-mongoengine
+
+Not strictly necessary, but very useful::
+
   pip install ipython
 
 
 MongoDB
 -------
+
 ::
    
   # sed -i 's/^#auth = true/auth = true/g' /etc/mongodb.conf

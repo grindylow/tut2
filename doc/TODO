@@ -31,6 +31,33 @@ User groups
 Support for user-defined time zone
 
 
+UI
+==
+
+(1)
+Burger-Symbol.
+Drag to the left of time: move entry to other position in
+list of entries, adjust start time intelligently (e.g. half-way).
+
+(2)
+Updown-Symbol
+Drag to the right of time: adjust start time in 5min / 15min / 1h
+intervals. Stop at next/previous entry? Move next/previous entries
+along with this one?
+
+(3)
+UNDO functionality!
+
+(4)
+Enter time/date manually.
+
+(5)
+Enter duration manually
+
+(6)
+Adjust duration with drag-and-drop
+
+
 
 DONE
 ====
