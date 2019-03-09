@@ -1,21 +1,5 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="static/tut2_default.css" type="text/css">
-    <title>Martin Grill - tut2</title>
-  </head>
-  <body>
-    <h1>Flashed messages</h1>
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul class=flashes>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}    
+{% extends "baselayout.html" %}
+{% block content %}
     <h1>User Details</h1>
 {% if current_user.is_authenticated %}
   Hi {{ current_user.fullname }}!<br />
@@ -29,5 +13,4 @@
     current_user._password: "{{ current_user._password }}" <br />
     current_user.schnuff: "{{ current_user.schnuff }}" <br />
     ...
-  </body>
-</html>
+{% endblock %}

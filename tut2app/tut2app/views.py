@@ -53,7 +53,7 @@ def reports():
 @login_required
 def track():
     entries = []
-    return render_template("page1.html",entries=entries)
+    return render_template("page2.html",entries=entries)
 
 @app.route("/api_queryentries")
 @login_required
@@ -64,7 +64,7 @@ def api_queryentries():
     """
 
     # entries will look something like this:
-    entries = [ 
+    entries = [
                 { 'deleted': False,
                   'logentry': 'First entry from server',
                   'project':  'SERV.001.10',

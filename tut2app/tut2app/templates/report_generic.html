@@ -1,22 +1,5 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="static/tut2_default.css" type="text/css">
-    <title>Martin Grill - tut2</title>
-  </head>
-  <body>
-    <h1>Flashed messages</h1>
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul class=flashes>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}    
+{% extends "baselayout.html" %}
+{% block content %}
     <h1>Report</h1>
     ...
-  </body>
-</html>
+{% endblock %}
