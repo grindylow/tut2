@@ -27,7 +27,7 @@ class Model:
         We use what might be called 'opportunistic auto-increment' as described in the
         mongodb manual: https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/
         In other words: we attempt to insert a document with a revision number
-        one higher than what we found in the database an instant earlier. If this goes 
+        one higher than what we found in the database an instant earlier. If this goes
         wrong, we try again, until we succeed. This relies on a 'unique' constraint being
         set up on the 'revision' field.
         """
@@ -54,18 +54,18 @@ class Model:
 
     def addOrUpdateEntries(self, entries, user_uid='USER_UID_UNSPECIFIED'):
         """
-        Add/update the given entries, return their respective 
-        (server-side) revision numbers, or None for all entries that were not 
+        Add/update the given entries, return their respective
+        (server-side) revision numbers, or None for all entries that were not
         updated/added.
         NOTE: this is currently only ever called with one single entry in the list
         of entries to add. Needs testing if we want to use add/update multi
         functionality.
         """
         logger.info('addOrUpdateEntries()')
-    
+
         # store entry in database
         revnrs = []
-        
+
         for e in entries:
             logger.debug("e: %s",e)
             e['_id'] = e['uid']    # translate tut2 UID to mongodb primary key
@@ -77,7 +77,7 @@ class Model:
             revnrs.append(revno)
 
         return revnrs
-            
+
     def addOrUpdateEntry(self, e):
         # attempt to insert, see https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/
         retries = 20
@@ -87,7 +87,7 @@ class Model:
         # entirely new one?
         # 1. Check if entry with given uid exists already
         existingentry = db.tut2entries.find_one({'_id':e['_id']})
-            
+
         # 2. Either create a new entry, or update the existing one
         result = None
         if existingentry:
@@ -118,14 +118,14 @@ class Model:
                 except pymongo.errors.DuplicateKeyError:
                     logger.warning('duplicate key error on insert_one() - trying again...')
                     continue
-                        
+
         logger.debug("result: %s",result)
         if result is None:
             logger.critical('FAILED to add or update entry %s. Giving up.' % e)
             revno = None   # indicate that there is no valid server-side revno
         return revno
 
-    def generate_report(self):
+    def generate_report(self, user_uid='*invalid*uid*'):
         """
         Report generator. Specify details of what kind of report to generate
         with the various arguments.
@@ -162,5 +162,55 @@ class Model:
 
         # ...and then keep reading from the iterator until we are past the
         # start time... Or run a separate query with COUNT=1 for that, after all.
-        
-        
+
+    def accumulate_times_for(self,
+                             starttime_ms = 1,
+                             endtime_ms = 1552211030733,
+                             user_uid='*invalid*uid*'):
+        """
+        Internal function for report generator. Query the database to list
+        all entries between the given start- and endtimes.
+        Calculate time spent on each entry.
+        Optional: Accumulate entries according to accumulation pattern(s).
+        (e.g.: subprojects)
+        Optional: Ignore certain entries.
+        @param starttime_ms Start of accumulation period, inclusive
+        @param endtime_ms   End of accumulation period, exclusive
+        """
+        cur_endtime = endtime_ms
+
+        # The algorithm is as follows:
+        #
+        # 1. Query database for all entries before endtime_ms.
+        #
+        # 2. Register each entry's duration as the time duration from its
+        #    starttime to the starttime of the previously processed entry (or
+        #    the initial endtime_ms).
+        #
+        # 3. Accumutlate entries, either as we go along, or after we have
+        #    collected all of them.
+
+        db = tut2db.get_db()
+
+        cursor = db.tut2entries.find(
+            {'deleted':False,
+             'user':user_uid,
+             'starttime_utc_ms':{'$lt':endtime_ms}
+            }).sort('starttime_utc_ms', pymongo.DESCENDING)
+
+        accumulator = []
+
+        for entry in cursor:
+            corrected_starttime = max(entry['starttime_utc_ms'], starttime_ms)
+            e = {'project':entry['project'],
+                 'duration_ms':cur_endtime-corrected_starttime
+                 # primarily for debugging/development
+                 #'starttime_ms':corrected_starttime,
+                 #'endttime_ms':cur_endtime
+                }
+            accumulator.append(e)
+            if corrected_starttime <= starttime_ms:
+                break  # we're done
+            cur_endtime = corrected_starttime
+
+        return accumulator

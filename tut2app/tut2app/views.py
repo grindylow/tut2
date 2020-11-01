@@ -43,11 +43,16 @@ def logout():
 def details():
     return render_template("userdetails.html")
 
-@app.route("/reports")
+@app.route("/reports", methods=["GET", "POST"])
 @login_required
 def reports():
-    report = mymodel.generate_report()   # @future: startdate,enddate,timezone,etc,etc
-    return render_template('report_generic.html')
+    report = []
+    if request.form:
+        starttime = request.form['starttime']
+        endtime = request.form['endtime']
+        exclude_regex = request.form['exclude_regex']
+        report = mymodel.generate_report(current_user.get_uid())   # @future: startdate,enddate,timezone,etc,etc
+    return render_template('report_generic.html', report=report)
 
 @app.route("/track")
 @login_required
