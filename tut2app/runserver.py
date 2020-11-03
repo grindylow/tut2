@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #
 # Alternative launching method according to
 # http://flask.pocoo.org/docs/0.12/patterns/packages/:

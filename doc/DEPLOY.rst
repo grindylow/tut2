@@ -46,7 +46,7 @@ this is where we would restore an existing database.
 ::
 
     cat secrets.conf
-    mongo admin -u tut2rw -p "..."   # Password taken from secrets.conf, created by setup_wizard.py
+    mongo admin -u tut2rw -p '...'   # Password for 'tut2rw' user taken from secrets.conf, created by setup_wizard.py
     use tut2db
     db.tut2users.insert({id:'user1', salt:'...', fullname:'Krub Bub', tut2_uid:'user1-x',password_hash:'...'})
 

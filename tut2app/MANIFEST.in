@@ -1,0 +1,2 @@
+graft tut2app/static
+graft tut2app/templates

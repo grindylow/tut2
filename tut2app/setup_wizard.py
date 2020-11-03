@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #import grep
 from pymongo import MongoClient
 import pymongo.errors

@@ -1,11 +1,12 @@
 # created according to instructions given at
-# http://flask.pocoo.org/docs/0.12/patterns/packages/
+# https://flask.palletsprojects.com/en/1.1.x/tutorial/install/
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 setup(
     name='tut2app',
-    packages=['tut2app'],
+    version='0.7.0',
+    packages=find_packages(),
     include_package_data=True,
     install_requires=[
         'flask',

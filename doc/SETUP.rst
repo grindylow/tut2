@@ -11,13 +11,13 @@ This assumes a basic Ubuntu 16.04 (LTS) setup to begin with.
 Python/Virtualenv setup
 -----------------------
 
-...as documented on http://www.virtualenv.org/en/latest/::
+...make sure that venv is available::
 
-    sudo apt-get install python-pip python-virtualenv
+    sudo apt-get install python3-venv
 
-In .../virtualenvs::
+In a directory parallel to where TUT2 is located::
 
-    virtualenv tut2env -p python3
+    python3 -m venv tut2env
     source tut2env/bin/activate
 
 
@@ -35,12 +35,9 @@ Python required packages
 
 Frameworks, interface layers, etc.::
 
-    pip install flask flask-debugtoolbar flask-login
+  $ pip install -r requirements.txt
 
-For database backend::
-
-    pip install pymongo
-    #pip install flask-mongoengine
+The above will also install the database backend (pymongo).
 
 Not strictly necessary, but very useful::
 
