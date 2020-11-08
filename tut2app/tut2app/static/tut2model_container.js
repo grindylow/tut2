@@ -182,7 +182,7 @@ function tut2_createTutModel(params)
     // Our regular model should only ever sync to upstream, never store to local
     // storage directly.
     o.saveToLocalStorage=function() {
-        console.err("should no longer saveToLocalStorage");
+        console.error("should no longer saveToLocalStorage");
         var intermediate=[];
         datastore.forEach(function(entry) {
             intermediate.push(entry.pickleToDict());

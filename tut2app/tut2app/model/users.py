@@ -7,20 +7,21 @@
 # Currently, there is no provision for automatically creating
 # users - you will need to create them manually in the database.
 
-import logging
-logger = logging.getLogger(__name__)
-
 import hashlib
 import base64
 from tut2app import tut2db
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class User:
     def __init__(self):
-        self._is_active=False
-        self._is_authenticated=False
-        self._is_anonymous=True
+        self._is_active = False
+        self._is_authenticated = False
+        self._is_anonymous = True
         self._tut2uid = None
-        self.username="John-Marshmallow"
+        self.username = "John-Marshmallow"
 
     @property
     def is_active(self):
@@ -35,7 +36,7 @@ class User:
     def is_authenticated(self):
         logger.debug("is_authenticated() was called")
         return self._is_authenticated
-    
+
     @property
     def is_anonymous(self):
         logger.debug("is_anonymous() was called")
@@ -45,7 +46,7 @@ class User:
         logger.debug("User.get_uid(%s) was called" % self.get_id())
         return self._tut2uid
 
-    def calc_hash(self,pwd):
+    def calc_hash(self, pwd):
         """
         Calculate hash from salt and given password.
         Password needs to be in 'bytes' at this stage.
@@ -53,8 +54,8 @@ class User:
         """
         h = hashlib.sha512(self._salt + pwd)
         return base64.b64encode(h.digest())
-    
-    def password_validates(self,password):
+
+    def password_validates(self, password):
         """
         Is the given password the correct one for this user?
         Passwords are stored as SHA2 hashes, salted with the salt
@@ -67,22 +68,22 @@ class User:
             logger.info('Passwords match. Access granted for user "%s".' % self.username)
             return True
         return False
-    
+
     @staticmethod
-    def retrieve_based_on_id(id):
-        logger.info("retrieve_based_on_id() was called with id '%s'" % id)
+    def retrieve_based_on_id(_id):
+        logger.info("retrieve_based_on_id() was called with id '%s'" % _id)
         u = None
         db = tut2db.get_db()
-        entry = db.tut2users.find_one({'id':id})
+        entry = db.tut2users.find_one({'id': _id})
         logger.info("found entry: %s" % entry)
 
         if entry:
             u = User()
-            u._is_active=True
-            u._is_authenticated=True
-            u._is_anonymous=False
+            u._is_active = True
+            u._is_authenticated = True
+            u._is_anonymous = False
             u.fullname = entry['fullname']
-            u.username = id
+            u.username = _id
             # app-specific extensions
             u._tut2uid = entry['tut2_uid']
             u._password_hash = entry['password_hash'].encode('utf8')
@@ -104,4 +105,3 @@ class User:
         if u.password_validates(password):
             return u
         return None
-    

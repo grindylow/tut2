@@ -2,12 +2,11 @@
 The data model(s)
 """
 
+from tut2app import tut2db
+import pymongo
 import logging
 logger = logging.getLogger(__name__)
 
-from tut2app import app
-from tut2app import tut2db
-import pymongo
 
 class Model:
 
@@ -41,9 +40,9 @@ class Model:
             logger.debug('Next revision should be %s. If you are quick.' % next_rev_no)
             return next_rev_no
 
-    def queryEntries(self,fromrev=0, user_uid='*invalid*uid*'):
+    def queryEntries(self, fromrev=0, user_uid='*invalid*uid*'):
         db = tut2db.get_db()
-        cursor = db.tut2entries.find({'revision':{'$gte':fromrev}, 'user':user_uid})
+        cursor = db.tut2entries.find({'revision': {'$gte': fromrev}, 'user': user_uid})
         entries = []
         for document in cursor:
             # translate uid from mongodb speech back to tut2 speech
@@ -67,12 +66,12 @@ class Model:
         revnrs = []
 
         for e in entries:
-            logger.debug("e: %s",e)
-            e['_id'] = e['uid']    # translate tut2 UID to mongodb primary key
+            logger.debug("e: %s", e)
+            e['_id'] = e['uid']  # translate tut2 UID to mongodb primary key
             del e['uid']
-            e['user'] = user_uid   # This is where entries get associated with a specific user id.
-                                   # No such thing exists in the client (browser) model, as it
-                                   # always belongs to the "current" user.
+            e['user'] = user_uid  # This is where entries get associated with a specific user id.
+            # No such thing exists in the client (browser) model, as it
+            # always belongs to the "current" user.
             revno = self.addOrUpdateEntry(e)
             revnrs.append(revno)
 
@@ -86,7 +85,7 @@ class Model:
         # do we want to update an existing entry, or create an
         # entirely new one?
         # 1. Check if entry with given uid exists already
-        existingentry = db.tut2entries.find_one({'_id':e['_id']})
+        existingentry = db.tut2entries.find_one({'_id': e['_id']})
 
         # 2. Either create a new entry, or update the existing one
         result = None
@@ -95,11 +94,11 @@ class Model:
             del e['_id']  # prevent "Mod on _id not allowed"
             logger.debug("entry exists: %s", existingentry)
             while retries:
-                retries = retries-1
+                retries = retries - 1
                 revno = self.retrieve_next_rev_no(db)
                 e['revision'] = revno
                 try:
-                    result = db.tut2entries.update({'_id':id}, {"$set": e}, upsert=False)
+                    result = db.tut2entries.update({'_id': id}, {"$set": e}, upsert=False)
                     break
                 except pymongo.errors.DuplicateKeyError:
                     logger.warning('duplicate key error on update() - trying again...')
@@ -109,7 +108,7 @@ class Model:
         else:
             logger.debug("entry doesn't exist yet")
             while retries:
-                retries = retries-1
+                retries = retries - 1
                 revno = self.retrieve_next_rev_no(db)
                 e['revision'] = revno
                 try:
@@ -119,10 +118,10 @@ class Model:
                     logger.warning('duplicate key error on insert_one() - trying again...')
                     continue
 
-        logger.debug("result: %s",result)
+        logger.debug("result: %s", result)
         if result is None:
             logger.critical('FAILED to add or update entry %s. Giving up.' % e)
-            revno = None   # indicate that there is no valid server-side revno
+            revno = None  # indicate that there is no valid server-side revno
         return revno
 
     def generate_report(self, user_uid='*invalid*uid*'):
@@ -164,8 +163,8 @@ class Model:
         # start time... Or run a separate query with COUNT=1 for that, after all.
 
     def accumulate_times_for(self,
-                             starttime_ms = 1,
-                             endtime_ms = 1552211030733,
+                             starttime_ms=1,
+                             endtime_ms=1552211030733,
                              user_uid='*invalid*uid*'):
         """
         Internal function for report generator. Query the database to list
@@ -193,21 +192,21 @@ class Model:
         db = tut2db.get_db()
 
         cursor = db.tut2entries.find(
-            {'deleted':False,
-             'user':user_uid,
-             'starttime_utc_ms':{'$lt':endtime_ms}
-            }).sort('starttime_utc_ms', pymongo.DESCENDING)
+            {'deleted': False,
+             'user': user_uid,
+             'starttime_utc_ms': {'$lt': endtime_ms}
+             }).sort('starttime_utc_ms', pymongo.DESCENDING)
 
         accumulator = []
 
         for entry in cursor:
             corrected_starttime = max(entry['starttime_utc_ms'], starttime_ms)
-            e = {'project':entry['project'],
-                 'duration_ms':cur_endtime-corrected_starttime
+            e = {'project': entry['project'],
+                 'duration_ms': cur_endtime - corrected_starttime
                  # primarily for debugging/development
-                 #'starttime_ms':corrected_starttime,
-                 #'endttime_ms':cur_endtime
-                }
+                 # 'starttime_ms':corrected_starttime,
+                 # 'endttime_ms':cur_endtime
+                 }
             accumulator.append(e)
             if corrected_starttime <= starttime_ms:
                 break  # we're done

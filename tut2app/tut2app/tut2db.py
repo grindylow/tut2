@@ -4,7 +4,6 @@ Functions for accessing the (MongoDB) database.
 
 from pymongo import MongoClient
 import configparser
-
 import logging
 logger = logging.getLogger(__name__)
 

@@ -3,8 +3,8 @@ import configparser
 import string
 import random
 import logging
-
 logger = logging.getLogger(__name__)
+
 
 def get_flask_key():
     # set a 'SECRET_KEY' to enable the Flask session cookies
@@ -26,6 +26,6 @@ def get_flask_key():
         cs = string.digits + string.ascii_letters + '!#$&()*+,-./:;<=>?@[]^_{|}~'
         key = ''.join(random.choice(cs) for _ in range(20))
         cfg['keys']['flask_secret_key'] = key
-        with open('secrets.conf','w') as f:
+        with open('secrets.conf', 'w') as f:
             cfg.write(f)
     return key
