@@ -34,10 +34,10 @@ function tut2_createDefaultView() {
     var createTutEntryDOMNode = function(entry, subs_entry) {
         var template=$('#tut-entry-template');
         var node=template.clone();
-        //node.removeAttr("id"); // will be replaced by next line of code, 
+        //node.removeAttr("id"); // will be replaced by next line of code,
                                      // no need to delete first
         //node.makevisible  // our template is invisible via CSS, but
-        // the clones are automatically fine, because they have a 
+        // the clones are automatically fine, because they have a
         // different ID.
         node.attr("id", encodeID(entry.getUID()));
         node.data("revision", entry.getRevision());  // store currrent revision, ".data" is jQuery
@@ -50,12 +50,12 @@ function tut2_createDefaultView() {
         if(entry.getUID()=="entrytemplate") {
             node.find(".tut_viewbox").addClass("tut_notyetvalid");
         }
-	// calculate duration if given a "next entry"
-	if(subs_entry !== undefined) {
-	    var duration_ms = subs_entry.getStarttimeUtcMs() - entry.getStarttimeUtcMs();
-	    var duration_str = durationStr(duration_ms);
-	    node.find('.tut_duration').html(duration_str);
-	}
+        // calculate duration if given a "next entry"
+        if(subs_entry !== undefined) {
+            var duration_ms = subs_entry.getStarttimeUtcMs() - entry.getStarttimeUtcMs();
+            var duration_str = durationStr(duration_ms);
+            node.find('.tut_duration').html(duration_str);
+        }
         console.log("created entry:");
         console.log(entry);
         addEventListeners(node);
@@ -69,7 +69,7 @@ function tut2_createDefaultView() {
         var node=template.clone();
         node.removeAttr("id");
         //node.makevisible  // our template is invisible via CSS, but
-        // the clones are automatically fine, because they have a 
+        // the clones are automatically fine, because they have a
         // different (no) ID.
         node.find(".tut_section_label").html(sectionlabel);
         console.log("created section header:");
@@ -94,36 +94,36 @@ function tut2_createDefaultView() {
 
     // Take a duration in ms and turn it into something like "37d 8:11:27"
     var durationStr = function(ms) {
-	var r = '';
-	var secs = 1000;
-	var mins = secs * 60;
-	var hours = mins * 60;
-	var days = hours * 24;
-	if(ms >= days) {
-	    r = r + Math.floor(ms / days) + 'd';
-	    ms = ms % days;
-	}
-	r = [r, Math.floor(ms/hours)].join(' ');
-	ms = ms % hours;
-	if(r == ' 0') {  // if no hours, don't display them at all
-	    r = Math.floor(ms / mins);
-	} else {
-	    r = r + ':' + prefixWithZeroes(Math.floor(ms / mins));
-	}
-	ms = ms % mins;
-	r = r + ':' + prefixWithZeroes(Math.floor(ms / secs));
-	return r;
+        var r = '';
+        var secs = 1000;
+        var mins = secs * 60;
+        var hours = mins * 60;
+        var days = hours * 24;
+        if(ms >= days) {
+            r = r + Math.floor(ms / days) + 'd';
+            ms = ms % days;
+        }
+        r = [r, Math.floor(ms/hours)].join(' ');
+        ms = ms % hours;
+        if(r == ' 0') {  // if no hours, don't display them at all
+            r = Math.floor(ms / mins);
+        } else {
+            r = r + ':' + prefixWithZeroes(Math.floor(ms / mins));
+        }
+        ms = ms % mins;
+        r = r + ':' + prefixWithZeroes(Math.floor(ms / secs));
+        return r;
     }
-    
+
     // Take a Date object and turn it into an ISO data string like "2007-04-05T12:30:45.765-02:00"
     var toISO8601 = function(d) {
-	return d.toISOString();
-	/* @future: make it display date in current timezone */
+        return d.toISOString();
+        /* @future: make it display date in current timezone */
     };
 
     // Take a ISO time string and convert it into "ms since Javascript epoch".
     var fromISO8601 = function(isostr) {
-	return Date.parse(isostr);  /* @future: "using Date.parse() is strongly discouraged" */
+        return Date.parse(isostr);  /* @future: "using Date.parse() is strongly discouraged" */
     };
 
     // get the name of the day
@@ -218,7 +218,7 @@ function tut2_createDefaultView() {
     // entry and ensuring we pick a timestamp in between the two. [flaw,not-bug]
     var insertEntryAboveClicked = function(event) {
         console.log("insertEntryAboveClicked()");
-	var uid = findUIDOfClickedEntry(this);
+        var uid = findUIDOfClickedEntry(this);
         var src = mymodel.getEntryByUID(uid);
         var newentry = src.createDuplicate();
         var newstarttime = src.getStarttimeUtcMs() + 1000;
@@ -236,7 +236,7 @@ function tut2_createDefaultView() {
     // "add entry above", above.
     var insertEntryBelowClicked = function(event) {
         console.log("insertEntryBelowClicked()");
-	var uid = findUIDOfClickedEntry(this);
+        var uid = findUIDOfClickedEntry(this);
         var src = mymodel.getEntryByUID(uid);
         var newentry = src.createDuplicate();
         var newstarttime = src.getStarttimeUtcMs() - 1000;
@@ -257,7 +257,7 @@ function tut2_createDefaultView() {
             console.warn("are you sure you want to do anything to/with the entrytemplate???");
             //return false;
         }
-	return uid;
+        return uid;
     };
 
     // The delete button of an entry was clicked.
@@ -313,7 +313,7 @@ function tut2_createDefaultView() {
             val=entry.getProject();
         } else if($(edit).hasClass("tut_starttime_edit")) {
             var ms = entry.getStarttimeUtcMs();
-	    val = toISO8601(new Date(ms));
+            val = toISO8601(new Date(ms));
         } else {
             console.log("don't know this field");
             alert("sorry don't know this field");
@@ -326,7 +326,7 @@ function tut2_createDefaultView() {
     var itemBlurred=function(event) {
         console.log('blurred');
         var view=$(this).siblings('.tut_viewbox');
-        view.html( $(this).val() ); 
+        view.html( $(this).val() );
         // store to model
         var entryroot=$(this).parents(".tut_entry");
         var uid=decodeID($(entryroot).attr("id"));
@@ -337,7 +337,7 @@ function tut2_createDefaultView() {
         } else if($(this).hasClass("tut_proj_edit")) {
             entry.setProject(val);
         } else if($(this).hasClass("tut_starttime_edit")) {
-	    var ms = fromISO8601(val);
+            var ms = fromISO8601(val);
             entry.setStarttimeUtcMs(ms);
         } else {
             console.log("cannot store this field");
@@ -362,6 +362,13 @@ function tut2_createDefaultView() {
 
     };
 
+    var findEntryForDOMEntity=function(entity) {
+        // return model of the TutEntry visualised by the given DOM entity
+        var entryroot = $(entity).parents(".tut_entry");
+        var uid = decodeID($(entryroot).attr("id"));
+        var src = mymodel.getEntryByUID(uid);
+    }
+
     var addEventListeners=function(root) {
         //newTodoDom.addEventListener('keypress', newTodoKeyPressHandler, false);
         var containers=$(root).find('.tut_container');
@@ -377,38 +384,93 @@ function tut2_createDefaultView() {
         editboxes.on('keypress',null,null,onKeyPress);
         resumebuttonlinks.on('click',null,null,resumeClicked);
         removebuttonlinks.on('click',null,null,removeClicked);
-	insertentryabovelinks.on('click',null,null,insertEntryAboveClicked);
-	insertentrybelowlinks.on('click',null,null,insertEntryBelowClicked);
+        insertentryabovelinks.on('click',null,null,insertEntryAboveClicked);
+        insertentrybelowlinks.on('click',null,null,insertEntryBelowClicked);
 
-	// drag time trials:
-	// references: http://luke.breuer.com/tutorial/javascript-drag-and-drop-tutorial.aspx
-	
-	var is_dragging = false;
-	var timeadjusters = $(root).find('.tut_adjstarttime a');
-	timeadjusters.on('mousedown',null,null,function(event) {
-	    console.log('md on adjuster');
-	    // Start tracking the mouse, and snapping the adjuster and/or time of current entry to certain grid values
-	    is_dragging = true;
-	    return false;  // indicate "we have handled it" -> otherwise user will start dragging the icon around
-	});
-	$(document).on('mouseup',null,null,function(event) {
-	    // todo needs to go on entire window/screen actually - user will drag all over the place!
-	    if(is_dragging)
-	    {
-		console.log('mu on document');
-		is_dragging = false;
-	    }
-	    // Stop tracking the mouse, set new time (or abort if too far from adjustment area/path)
-	    return false;  // indicate "we have handled it"
-	});
-	$(document).on('mousemove',null,null,function(event) {
-	    // mouse was moved
-	    if(is_dragging)
-	    {
-		console.log('mm on document:',event);
-	    }
-	    return false;  // indicate "we have handled it"
-	});
+        // drag time trials:
+        // references: http://luke.breuer.com/tutorial/javascript-drag-and-drop-tutorial.aspx
+
+        var is_dragging = false;
+        var ref_coords_x, ref_coords_y;
+
+        // current dx, dy during an ongoing dragging session
+        var dx, dy;
+
+        // entry that is being dragged
+        var entry_DOM_entity;  // this is the "entry" Element that was clicked
+        var entry_model; // we perform live visual updates on the entry using this model "proxy" object
+
+        var timeadjusters = $(root).find('.tut_adjstarttime a');
+        timeadjusters.on('mousedown',null,null,function(event) {
+            console.log('md on adjuster', event);
+            // Start tracking the mouse, and snapping the adjuster and/or time of current entry to certain grid values
+            is_dragging = true;
+            ref_coords_x = event.originalEvent.clientX;
+            ref_coords_y = event.originalEvent.clientY;
+
+            entry_DOM_entity = $(event.target).parents(".tut_entry");
+            var uid = findUIDOfClickedEntry(event.target);
+            entry_model = mymodel.getEntryByUID(uid);
+
+            // @// TODO:
+            // for the duration of the drag operation, we create a "view" object for the current entry
+            // that deals with drawing the entry's changing start time.
+            // Only when the drag operation finishes will we update the actual entry (model) with the
+            // new start time.
+
+            var my_starttime_container = $(entry_DOM_entity).find(".tut_starttime");
+            my_starttime_container.addClass('currently_dragging_starttime');
+
+            return false;  // indicate "we have handled it" -> otherwise user will start dragging the icon around
+        });
+        $(document).on('mouseup',null,null,function(event) {
+            // todo needs to go on entire window/screen actually - user will drag all over the place!
+            if(is_dragging)
+            {
+                console.log('mu on document');
+                var my_starttime_container = $(entry_DOM_entity).find(".tut_starttime");
+                my_starttime_container.removeClass('currently_dragging_starttime');
+                is_dragging = false;
+                entry_model.finalise_drag_adjustment();
+            }
+            // Stop tracking the mouse, set new time (or abort if too far from adjustment area/path)
+            return false;  // indicate "we have handled it"
+        });
+        $(document).on('mousemove',null,null,function(event) {
+            // mouse was moved
+            if(is_dragging)
+            {
+                var x = event.originalEvent.clientX;
+                var y = event.originalEvent.clientY;
+                dx = ref_coords_x-x;
+                dy = ref_coords_y-y;
+                console.log('mm on document: current delta = ', dy);
+                var updown = Math.sign(dy);
+                console.log('mm on document:',event);
+                console.log(' - this relates to entry_model', entry_model);
+
+                // decide on size of adjustment depending on vertical distance from drag origin
+                // Model knows best how to do this.
+                entry_model.adjust_to_nth_next_interval(Math.trunc(dy/10));
+                /*
+                if(dy<50) {
+                    entry_model.adjust_to_nth_next_interval(updown*Math.trunc(dy/10), 60);  // minute
+                } else if(Math.abs(dy<100)) {
+                        entry_model.adjust_to_nth_next_interval(updown*Math.trunc((dy-40)/10), 15*60);  // quarter hour
+                } else {
+                    entry_model.adjust_to_nth_next_interval(updown*Math.trunc((dy-90)/10), 60*60);  // full hour
+                }
+                */
+                console.log(entry_DOM_entity);
+                var my_starttime_div = $(entry_DOM_entity).find(".tut_starttime");
+                var d = new Date(entry_model._tentativeStarttimeMs);
+                console.log("_tentativeStarttimeMs", entry_model._tentativeStarttimeMs);
+                console.log("Date(_tentativeStarttimeMs)", d);
+                var t = timeStr(d);
+                my_starttime_div.html(t);
+            }
+            return false;  // indicate "we have handled it"
+        });
     };
 
 
@@ -433,7 +495,7 @@ function tut2_createDefaultView() {
         // respective entry is represented in the HTML view.
 
         // approach 1 (should work well enough for adding entries, not so much
-        // for deleting/moving them): 
+        // for deleting/moving them):
         // - whenever we encounter an entry that isn't in the HTML where it
         //   ought to be, we simply insert it.
         // - if there are any entries left in the HTML once we have reached
@@ -447,7 +509,7 @@ function tut2_createDefaultView() {
         var idx_view=0;   // index into HTML nodes
         var traversed_all_model_entries=false;
         var traversed_all_view_nodes=false;
-	var prev_entry;   // during processing: the previous entry (i.e. the next entry, time-wise)
+        var prev_entry;   // during processing: the previous entry (i.e. the next entry, time-wise)
 
         console.log("dom_targets.length="+dom_targets.length);
         console.log("entries.length="+entries.length);
@@ -470,7 +532,7 @@ function tut2_createDefaultView() {
             var entry=entries[idx_model];
 
             // Is the entry deleted (i.e. doesn't exist anymore)? If yes, ignore it!
-            if(entry.isDeleted()) { 
+            if(entry.isDeleted()) {
                 idx_model++;
                 continue;
             }
@@ -492,7 +554,7 @@ function tut2_createDefaultView() {
                     var actualnode_sectionlabel=$(actualnode).find(".tut_section_label");
                     console.log(actualnode_sectionlabel);
                     //console.log($(expectednode).find(".tut_section_label")[0].innerHTML,actualnode_sectionlabel[0].innerHTML);
-                    if(     (actualnode_sectionlabel.length!=0)  
+                    if(     (actualnode_sectionlabel.length!=0)
                         &&  ($(expectednode).find(".tut_section_label")[0].innerHTML
                              ===actualnode_sectionlabel[0].innerHTML) ) {
                         console.log("IDENTICAL SECTION HEADER");
@@ -502,9 +564,9 @@ function tut2_createDefaultView() {
                         console.log("SIMPLY INSERTING A NEW SECTION HEADER");
                         // simply insert a new section header
                         $(dom_targets[idx_view]).before(expectednode.slideDown(1000));
-			    // not overly pretty (yet).
-			    // certainly broken in Safari.
-			    // Not tried other browsers yet.
+            // not overly pretty (yet).
+            // certainly broken in Safari.
+            // Not tried other browsers yet.
                     }
                 }
             }
@@ -520,10 +582,10 @@ function tut2_createDefaultView() {
                     var node = createTutEntryDOMNode(entry, prev_entry); /**CONTINUE**/
                     $(dom_targets[idx_view]).before(node);
                     idx_model++;
-		    prev_entry = entry;
+            prev_entry = entry;
                     continue;
                 }
-            
+
                 console.log($(dom_targets[idx_view]).attr("id"));
                 var domuid=decodeID($(dom_targets[idx_view]).attr("id"));
                 if(domuid==entry.getUID()) {
@@ -549,7 +611,7 @@ function tut2_createDefaultView() {
                 } else {
                     console.log("ENTRIES NOT IDENTICAL - SIMPLY INSERTING A NEW ONE BEFORE THE EXISTING ONE!");
                     var node=createTutEntryDOMNode(entry, prev_entry);
-		    prev_entry = entry;
+            prev_entry = entry;
                     $(dom_targets[idx_view]).before(node.slideDown(1000));  // not overly pretty (yet). certainly broken in Safari. Not tried other browsers yet.
                     idx_model++;
                 }
@@ -558,18 +620,18 @@ function tut2_createDefaultView() {
                 //console.log("NOT IMPLEMENTED C");
                 console.log("APPENDING NODE TO END OF VIEW");
                 var node=createTutEntryDOMNode(entry, prev_entry);
-		prev_entry = entry;
+        prev_entry = entry;
                 c.append(node);
                 idx_model++;
             }
             //var node=createTutEntryNode(entry);
             //c.append(node);
-            
+
             // What's still missing:
             // done - create remaining nodes when reached end of view
             // done - delete remaining view entries when reached end of model
             // ? - update node contents **if modified** (add modified flag to model?)
-            //     why is this important: primarily for newly added entries from 
+            //     why is this important: primarily for newly added entries from
             //     template: time field needs to be updated. Also in the template itself.
             //     although maybe we'll cheat when it comes to continuously updating the
             //     time in the template. seems like a lot of overhead to sync every
@@ -586,7 +648,7 @@ function tut2_createDefaultView() {
         //top_entry.find('.tut_viewbox').addClass('tut_notyetvalid');
     };
 
-    /** Will get called whenever a sync starts/finishes 
+    /** Will get called whenever a sync starts/finishes
       */
     v.syncProgressCallback=function(code,upstreamName) {
         console.info("syncProgressCallback",code,upstreamName);

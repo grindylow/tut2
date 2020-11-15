@@ -27,7 +27,7 @@ the entry in the applications database. All related HTML elements are
 addressed via appropriate (sub-)selectors.
 
 The template entry at the top of the list has the special HTML ID
-"template-entry". 
+"template-entry".
 
 The start time of the template entry is updated to the current time at
 least once every minute.
@@ -35,13 +35,13 @@ least once every minute.
 The following actions turn the template entry into a regular entry:
 
  * Any of the template entry's fields are selected for modification
-   (e.g. by clicking on them with the mouse). 
+   (e.g. by clicking on them with the mouse).
  * ... keyboard accelerators, tbd ...
 
 Whenever the template entry is turned into a regular entry, the
 following actions take place:
 
- * The start time of the newly created entry is updated to the 
+ * The start time of the newly created entry is updated to the
    current time.
  * A new template entry is created (and displayed) above the newly
    created entry.
@@ -58,3 +58,22 @@ The model maintains the list of entries.
 The view syncs to the model on request.
 
 The database syncs to the model on request.
+
+Ways of adjusting an existing Entry:
+
+ * Drag the Up-Down-Arrow to the left of the start time with the mouse.
+   * Straying "too far" to the left or right and releasing the mouse button will abort the operation.
+   * Moving the mouse up and down (with mouse button pressed) will adjust the start time as follows:
+     * movements "close to" the original position will tentatively adjust time in 1 minute increments:
+       moving the mouse up will increase time, moving the mouse down will decrease time
+     * movements further afield will adjust time in 15-minute increments
+     * movements even further afield will adjust time in 1-hour increments
+     * time cannot be adjusted past the start time of adjacent entries (to be revised if desired)
+
+ * Click on the start time. Enter a new time in the entry field and hit enter.
+   You cannot change a time entry beyond the boundaries of the current day (in your local time zone).
+
+ * Drag the Up-Down-Arrow to the right of the duration with the mouse. Behaviour will be similar
+   to adjusting the start time by dragging (see above).
+   
+ * Drag the entire entry to a new location.

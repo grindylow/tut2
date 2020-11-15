@@ -10,7 +10,7 @@
 // information about this particular logged piece of work such
 // as project and start time.
 // It also handles internal details such as marking itself as
-// modified/pristine. 
+// modified/pristine.
 // A TutEntry is part of the Tut data model.
 // Each TutEntry knows about the model it is contained in, so it can
 // ask the Model for a new revision number whenever it needs one.
@@ -27,7 +27,7 @@ function tut2_createTutEntry(model,params) {
             return (c=='x' ? r : (r&0x3|0x8)).toString(16);
         });
         return uuid;
-    };    
+    };
 
     /* public member functions */
     o.getUID=function()    { return _uid;  };
@@ -42,11 +42,11 @@ function tut2_createTutEntry(model,params) {
                              };
 
     o.getLogentry=function()  { return _logentry;     };
-    o.setLogentry=function(t) { _logentry=t;          
+    o.setLogentry=function(t) { _logentry=t;
                                 _revision=_model.getNewRevNo();  // Indicate "modified" state
                               };
 
-    o.markAsDeleted=function() { _deleted=true; 
+    o.markAsDeleted=function() { _deleted=true;
                                 _revision=_model.getNewRevNo();  // Indicate "modified" state
                                };
     o.isDeleted=function()     { return _deleted; };
@@ -59,6 +59,83 @@ function tut2_createTutEntry(model,params) {
                                         _revision=_model.getNewRevNo();  // Indicate "modified" state
                                     };
 
+    /* Various functions to help with interaction of user and entry on the main /track page */
+
+    o.adjust_to_nth_next_interval=function(n) {
+        // adjust to n-th step. 0 - no adjustment. Then 1-minute intervals, then 15-minute-intervals, then 60-minute-intervals
+
+        // adjust (temporary) start time to nth multiple of alignment (in s) (based off of actual start time)
+        // This temporarily adjusted start time will only become permanent after confirmation, which
+        // is sent when the user releases the mouse button.
+        // special case "n=0": keep original time
+
+        console.log("adjust_to_nth_next_interval()", n);
+        var direction = Math.sign(n);
+        var offset = (direction>0)?0:1;
+        n = Math.abs(n)
+        var t = this.getStarttimeUtcMs();
+
+        // (1) determine 1st time interval "away from" current time in the direction given by the sign of n,
+        // (2) add n such time intervals
+        // (3) store this as potential new start time
+        if(n!=0) {
+            {
+                // first 5 steps are 1-minute steps
+                var a = 60*1000;
+                t = (Math.floor(t/a)+offset)*a;
+                var ctr = 5;
+                while(ctr>0 && n>0)
+                {
+                    t = t + direction*60*1000;
+                    ctr--;
+                    n--;
+                }
+                if(n>0) {
+                    // next 5 steps are 15-minute steps
+                    a = 15*60*1000;
+                    t = (Math.floor(t/a)+offset)*a;
+                    var ctr = 5;
+                    while(ctr>0 && n>0)
+                    {
+                        t = t + direction*15*60*1000;
+                        ctr--;
+                        n--;
+                    }
+                    if(n>0) {
+                        // all remaining steps are 60-minute steps
+                        a = 60*60*1000;
+                        t = (Math.floor(t/a)+offset)*a;
+                        t = t + direction*60*60*1000*n;
+                    }
+                }
+            }
+        }
+
+        // @todo make sure we don't exceed any of the adjacent entries' start time
+        // if(t<this.getStarttimeUtcMs()) {
+        //     if(undefined===this.prev_entry) {
+        //         t = this.getStarttimeUtcMs();
+        //     }
+        //     else if(prev.entry.getStarttimeUtcMs() >= t) {
+        //         t = prev.entry.getStarttimeUtcMs()+1;
+        //     }
+        // }
+        // @todo same logic for "next_entry"
+
+        console.log("adjusted time is", t);
+        this._tentativeStarttimeMs = t;
+    };
+
+    o.finalise_drag_adjustment=function() {
+        // Actually store the starttime that was adjusted tentatively with
+        // adjust_to_nth_next_interval(). This happens when the user releases
+        // the mouse button after dragging the starttime adjustment arrow.
+        console.log("finalise_drag_adjustment()", this._tentativeStarttimeMs);
+        _starttime_utc_ms=this._tentativeStarttimeMs;
+        _revision=_model.getNewRevNo();  // Indicate "modified" state
+    }
+
+
     // return a loggable representation of this entry
     o.dump=function() {
         return o.pickleToDict();
@@ -67,8 +144,8 @@ function tut2_createTutEntry(model,params) {
     // create a copy of this entry, with its own distinct UID
     o.createDuplicate=function(model) {
         var m=model || _model;  // use own model if no model passed in
-        return tut2_createTutEntry( m, 
-        { 
+        return tut2_createTutEntry( m,
+        {
             "starttime_utc_ms":_starttime_utc_ms,
             "logentry":_logentry,
             "project":_project,
@@ -104,13 +181,16 @@ function tut2_createTutEntry(model,params) {
     var _revision=-1;
     var _deleted=false;
 
+    // data below are not persisted
+    var _tentativeStarttimeMs=-4;  // used during dragging of starttime
+
     if(params.hasOwnProperty("logentry")) { _logentry=params.logentry; }
     if(params.hasOwnProperty("project"))  { _project=params.project; }
     if(params.hasOwnProperty("deleted"))  { _deleted=params.deleted; }
     if(params.hasOwnProperty("starttime_utc_ms"))  { _starttime_utc_ms=params.starttime_utc_ms; }
     if(params.hasOwnProperty("uid"))      { _uid=params.uid; }  /* somewhat problematic? only used by createTemplateEntry(). */
     if(params.hasOwnProperty("revision")) { _revision=params.revision; } else { _revision=model.getNewRevNo(); }
- 
+
     console.log("LogEntry constructor done.",params);
     return o;
 };

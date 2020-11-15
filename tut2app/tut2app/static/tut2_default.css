@@ -32,6 +32,9 @@ div.tut_container {
     padding: 0 0 0 0;
 }
 
+div.currently_dragging_starttime {
+    background-color: yellow !important
+}
 div.tut_right {
     float: right;
     xvertical-align: bottom;
