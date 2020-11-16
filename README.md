@@ -1,3 +1,4 @@
+![TUT2 Thumbnail](https://lookonthebrightsi.de/mc-mods/tut2/tut2_thumbnail.png)
 # tut2: Track your Time Mark 2
 
 Effortless one-click time tracking
