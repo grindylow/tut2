@@ -255,7 +255,7 @@ class Model:
             corrected_starttime = max(entry['starttime_utc_ms'], starttime_ms)
             matches = re.search(regex_proj_subproj, entry['project'])
             if not matches:
-                logger.warning(f"Could not parse project entry {entry['project']}")
+                logger.warning("Could not parse project entry %s" % entry['project'])
                 continue
 
             print(matches)
