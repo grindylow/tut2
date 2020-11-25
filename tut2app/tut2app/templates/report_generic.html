@@ -1,5 +1,24 @@
 {% extends "baselayout.html" %}
 {% block content %}
     <h1>Report</h1>
-    ...
+    Select from one of the predefined report durations below, or choose your own.<br />
+    <input type="button" value="this week" id="this_week" name="this_week" />
+    <input type="button" value="last week" id="last_week" name="XXXlast_week" />
+    <input type="button" value="2 weeks ago" id="last_last_week" name="XXXlast_week" />
+    <form>
+        <table>
+            <tr>
+                <td><label for="starttime">start time:</label></td><td><input id="starttime" name="starttime" /></td>
+            </tr>
+            <tr>
+                <td><label for="endtime">end time:</label></td><td><input id="endtime" name="endtime" /></td>
+            </tr>
+            <tr>
+                <td><label for="interval">interval:</label></td><td><input id="interval" name="interval" /></td>
+            </tr>
+        </table>
+    </form>
+    <input type="button" id="generate" value="Generate report!" name="generate" />
+    <hr />
+    <div id="report_table">...report goes here...</div>
 {% endblock %}

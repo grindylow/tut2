@@ -4,6 +4,7 @@ from tut2app import app
 from tut2app import login_manager
 from tut2app.model import model
 from tut2app.model import users
+import logging
 
 mymodel = model.Model()  # this might not be right - does it need to go into 'g'?
 login_manager.login_view = 'login'
@@ -58,6 +59,20 @@ def reports():
         exclude_regex = request.form['exclude_regex']
         report = mymodel.generate_report(current_user.get_uid())  # @future: startdate,enddate,timezone,etc,etc
     return render_template('report_generic.html', report=report)
+
+@app.route("/report_table", methods=["GET", "POST"])
+@login_required
+def report_table():
+    """Simple report adding up project durations between given times."""
+    report = []
+    starttime = request.args.get('starttime', 1, type=int)
+    endtime = request.args.get('endtime',100, type=int)
+    interval = request.args.get('interval',10, type=int)
+    logging.info("report_table(%s)", (starttime, endtime, interval))
+
+    reportdata = mymodel.generate_report(current_user.get_uid(), starttime_ms=starttime, endtime_ms=endtime, interval_ms=interval, maxiter=20)
+
+    return render_template('report_table_fragment.html', reportdata=reportdata)
 
 
 @app.route("/track")

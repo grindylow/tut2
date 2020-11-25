@@ -5,6 +5,8 @@ The data model(s)
 from tut2app import tut2db
 import pymongo
 import logging
+import math  # floor (report generator)
+import re    # report generator relies on regular expressions
 logger = logging.getLogger(__name__)
 
 
@@ -124,11 +126,44 @@ class Model:
             revno = None  # indicate that there is no valid server-side revno
         return revno
 
-    def generate_report(self, user_uid='*invalid*uid*'):
+    def generate_report(self, user_uid, starttime_ms, endtime_ms, interval_ms, maxiter=20):
         """
         Report generator. Specify details of what kind of report to generate
         with the various arguments.
+
+        @param maxiter Maximum number of loop iterations before we abort
+                       (prevents excessive use of processor time)
+
+        @returns dict: { projectlist: [...], starttimes: [...], accumulated_times_for_interval: [...] }
         """
+
+        results_by_interval = []
+        starttime_by_interval = []
+        all_projects = set(())
+
+        def ms_to_duration_str(duration_ms):
+            hrs = math.floor(duration_ms/1000/60/60);
+            rem = duration_ms - hrs*1000*60*60
+            mins = math.floor(rem/1000/60)
+            s = f"{hrs}:{mins:02}"
+            return s
+
+        ctr = 0
+        for s in range(starttime_ms, endtime_ms, interval_ms):
+            t = self.accumulate_times_for(s, s+interval_ms, user_uid)
+            # for display purposes, convert ms-values to "hh:mm" strings
+            for p in t.keys():
+                t[p]["total_ms"] = ms_to_duration_str(t[p]["total_ms"])
+            results_by_interval.append(t)
+            starttime_by_interval.append(s)
+            all_projects.update(t.keys())
+            logging.info(t)
+            ctr += 1
+            if ctr>=maxiter:
+                break
+        r = { "projectlist":sorted(all_projects, key=lambda x: str(x)), "starttimes":starttime_by_interval, "accumulated_times_for_interval": results_by_interval }
+        #r = { "projectlist":all_projects, "starttimes":starttime_by_interval, "accumulated_times_for_interval": results_by_interval }
+        return r
 
         # The most common form of report is reporting the number of hours
         # per project for a given timespan.
@@ -175,7 +210,23 @@ class Model:
         Optional: Ignore certain entries.
         @param starttime_ms Start of accumulation period, inclusive
         @param endtime_ms   End of accumulation period, exclusive
+
+        @returns List of projects and subprojects like this:
+                 { 'P100': { 'total_ms': 928378,
+                             'subprojects': { '300': 23453,
+                                              '311': 2222,
+                                              '700': 22222,
+                                              '': 383
+                                            }
+                         }
+                 }
+
+        See regex-tester at https://regex101.com/r/IUWLYM/1
         """
+
+        regex_proj_subproj = r"^\s*(?P<project>[a-zA-Z0-9]+)(\.(?P<subproject>[a-zA-Z0-9]+)|)"
+        regex_ignore = r"..."
+
         cur_endtime = endtime_ms
 
         # The algorithm is as follows:
@@ -186,7 +237,7 @@ class Model:
         #    starttime to the starttime of the previously processed entry (or
         #    the initial endtime_ms).
         #
-        # 3. Accumutlate entries, either as we go along, or after we have
+        # 3. Accumulate entries, either as we go along, or after we have
         #    collected all of them.
 
         db = tut2db.get_db()
@@ -197,17 +248,33 @@ class Model:
              'starttime_utc_ms': {'$lt': endtime_ms}
              }).sort('starttime_utc_ms', pymongo.DESCENDING)
 
-        accumulator = []
+        accumulator = { 0: {'total_ms': 0} }  # entry 0 sums up all durations
 
         for entry in cursor:
+            print(entry)
             corrected_starttime = max(entry['starttime_utc_ms'], starttime_ms)
-            e = {'project': entry['project'],
-                 'duration_ms': cur_endtime - corrected_starttime
-                 # primarily for debugging/development
-                 # 'starttime_ms':corrected_starttime,
-                 # 'endttime_ms':cur_endtime
-                 }
-            accumulator.append(e)
+            matches = re.search(regex_proj_subproj, entry['project'])
+            if not matches:
+                logger.warning(f"Could not parse project entry {entry['project']}")
+                continue
+
+            print(matches)
+            projectstr = matches['project']
+            if not projectstr:
+                projectstr = "UNKNOWN"
+            subprojectstr = matches['subproject'] if matches['subproject'] else ''
+            duration_ms = cur_endtime - corrected_starttime
+
+            if not projectstr in accumulator:
+                accumulator[projectstr] = {'total_ms':0, 'subprojects':{}}
+            accumulator[projectstr]['total_ms'] = accumulator[projectstr]['total_ms'] + duration_ms
+
+            if not subprojectstr in accumulator[projectstr]['subprojects']:
+                accumulator[projectstr]['subprojects'][subprojectstr] = 0
+            accumulator[projectstr]['subprojects'][subprojectstr] += duration_ms
+
+            accumulator[0]['total_ms'] += duration_ms
+
             if corrected_starttime <= starttime_ms:
                 break  # we're done
             cur_endtime = corrected_starttime

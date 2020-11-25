@@ -21,17 +21,17 @@ autosuggest-dropdown, or manually enter text.
 Project Names
 -------------
 
-TUT2 does not impose any rules as to what your project names should 
+TUT2 does not impose any rules as to what your project names should
 look like. You may use a simple unstructured approach ("building sandcastle",
-"cleaning", "procrastinating"). 
+"cleaning", "procrastinating").
 
 However, adhering to some naming convention will give you additional
 benefits, particularly in the area of reporting.
 
 A recommended scheme for naming your projects is to stick with some
-hierarchical 
-"PROJECT.SUBPROJECT (COMMENT)" naming scheme. TUT2 can report total project 
-time as well as time spent on individual subprojects out of the box with 
+hierarchical
+"PROJECT.SUBPROJECT (COMMENT)" naming scheme. TUT2 can report total project
+time as well as time spent on individual subprojects out of the box with
 such an approach.
 
 
@@ -61,6 +61,13 @@ icon.
 
 Generate daily/weekly/etc reports on the reports page (/report).
 
+For reporting purposes, three filter expressions ("regular experessions")
+specify, how (sub-)projects are grouped:
+
+  `project-filter` isolates the main and sub-project names
+  `ignore-filter` matches projects that will be ignored for reporting purposes
+
+
 
 Sharing
 -------
@@ -82,4 +89,3 @@ Administrators of OUs can invite users to join an OU.
 
 Users can request to join any OU, but the OU administrators will have
 to approve the request.
-
