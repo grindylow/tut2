@@ -145,7 +145,7 @@ class Model:
             hrs = math.floor(duration_ms/1000/60/60);
             rem = duration_ms - hrs*1000*60*60
             mins = math.floor(rem/1000/60)
-            s = f"{hrs}:{mins:02}"
+            s = "%d:%02d" % (hrs, mins)  # f"{hrs}:{mins:02}"
             return s
 
         ctr = 0
