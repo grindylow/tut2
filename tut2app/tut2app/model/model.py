@@ -145,6 +145,7 @@ class Model:
             hrs = math.floor(duration_ms/1000/60/60);
             rem = duration_ms - hrs*1000*60*60
             mins = math.floor(rem/1000/60)
+            s = f"{hrs}:{mins:02}"
             return s
 
         ctr = 0
@@ -254,6 +255,7 @@ class Model:
             corrected_starttime = max(entry['starttime_utc_ms'], starttime_ms)
             matches = re.search(regex_proj_subproj, entry['project'])
             if not matches:
+                logger.warning("Could not parse project entry %s" % entry['project'])
                 continue
 
             print(matches)
