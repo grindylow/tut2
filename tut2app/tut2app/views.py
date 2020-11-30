@@ -68,9 +68,12 @@ def report_table():
     starttime = request.args.get('starttime', 1, type=int)
     endtime = request.args.get('endtime',100, type=int)
     interval = request.args.get('interval',10, type=int)
+    currenttime = request.args.get('currenttime',10, type=int)
     logging.info("report_table(%s)", (starttime, endtime, interval))
 
-    reportdata = mymodel.generate_report(current_user.get_uid(), starttime_ms=starttime, endtime_ms=endtime, interval_ms=interval, maxiter=20)
+    reportdata = mymodel.generate_report(current_user.get_uid(),
+        starttime_ms=starttime, endtime_ms=endtime, interval_ms=interval,
+        currenttime_ms=currenttime, maxiter=20)
 
     return render_template('report_table_fragment.html', reportdata=reportdata)
 

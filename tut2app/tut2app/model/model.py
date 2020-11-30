@@ -126,10 +126,13 @@ class Model:
             revno = None  # indicate that there is no valid server-side revno
         return revno
 
-    def generate_report(self, user_uid, starttime_ms, endtime_ms, interval_ms, maxiter=20):
+    def generate_report(self, user_uid, starttime_ms, endtime_ms, interval_ms, currenttime_ms=None, maxiter=20):
         """
         Report generator. Specify details of what kind of report to generate
         with the various arguments.
+
+        @param currenttime_ms: if specified: assume that no information is available
+                               for times later than this. (As that would be predicting the future.)
 
         @param maxiter Maximum number of loop iterations before we abort
                        (prevents excessive use of processor time)
@@ -150,7 +153,7 @@ class Model:
 
         ctr = 0
         for s in range(starttime_ms, endtime_ms, interval_ms):
-            t = self.accumulate_times_for(s, s+interval_ms, user_uid)
+            t = self.accumulate_times_for(s, s+interval_ms, currenttime_ms, user_uid)
             # for display purposes, convert ms-values to "hh:mm" strings
             for p in t.keys():
                 t[p]["total_ms"] = ms_to_duration_str(t[p]["total_ms"])
@@ -200,6 +203,7 @@ class Model:
     def accumulate_times_for(self,
                              starttime_ms=1,
                              endtime_ms=1552211030733,
+                             currenttime_ms=None,
                              user_uid='*invalid*uid*'):
         """
         Internal function for report generator. Query the database to list
@@ -229,6 +233,18 @@ class Model:
 
         cur_endtime = endtime_ms
 
+        accumulator = { 0: {'total_ms': 0} }  # entry 0 sums up all durations
+
+        if currenttime_ms<starttime_ms:
+            # the answer is easy
+            return accumulator
+
+        # If we are asked to predict the future, stick with past and present.
+        # But endtime still needs to be ahead of starttime, even if both
+        # turn out to be in the future
+        if currenttime_ms<endtime_ms:
+            cur_endtime = currenttime_ms
+
         # The algorithm is as follows:
         #
         # 1. Query database for all entries before endtime_ms.
@@ -248,11 +264,18 @@ class Model:
              'starttime_utc_ms': {'$lt': endtime_ms}
              }).sort('starttime_utc_ms', pymongo.DESCENDING)
 
-        accumulator = { 0: {'total_ms': 0} }  # entry 0 sums up all durations
 
         for entry in cursor:
             print(entry)
             corrected_starttime = max(entry['starttime_utc_ms'], starttime_ms)
+
+            logger.info(f"corrected_starttime={corrected_starttime}, currenttime_ms={currenttime_ms}")
+
+            if currenttime_ms:
+                if corrected_starttime >= currenttime_ms:
+                    # start time is "in the future" - ignore
+                    continue
+
             matches = re.search(regex_proj_subproj, entry['project'])
             if not matches:
                 logger.warning("Could not parse project entry %s" % entry['project'])

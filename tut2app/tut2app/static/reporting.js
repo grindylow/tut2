@@ -74,7 +74,12 @@
                 dataType: "html",
                 url: "report_table",
                 cache:false,
-                data: {"starttime":$("#starttime").val(), "endtime":$("#endtime").val(), "interval":$("#interval").val()},
+                data: {
+                    "starttime": $("#starttime").val(),
+                    "endtime": $("#endtime").val(),
+                    "interval":$("#interval").val(),
+                    "currenttime": new Date().getTime()
+                },
                 //success: success
                 async: true,
                 success: function(data, textStatus, jqXHR) {
