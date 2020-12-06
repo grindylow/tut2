@@ -1,0 +1,35 @@
+<h2>Report</h2>
+<table border=1>
+    <thead>
+        <th>Project</th>
+    {% for item in reportdata["starttimes"] %}
+        <th class="columnheader">{{item}}</th>
+    {% endfor %}
+    </thead>
+    {% for project in reportdata["projectlist"] if project!=0 %}
+    <tr>
+        <td>
+            {{project}}
+        </td>
+        {% for item in reportdata["accumulated_times_for_interval"] %}
+            <td align="right">
+            {% if project in item %}
+                {{item[project]["total_ms"]}}
+            {% else %}
+                -
+            {% endif %}
+            </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+    <tr>
+        <td>
+            SUM
+        </td>
+        {% for item in reportdata["accumulated_times_for_interval"] %}
+            <td align="right">
+            {{item[0]["total_ms"]}}
+            </td>
+        {% endfor %}
+    </tr>
+</table>

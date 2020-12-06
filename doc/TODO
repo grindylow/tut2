@@ -2,13 +2,16 @@
 TODO
 ====
 
-Basic reporting
+Basic reporting: Sum up times for all projects/subprojects for current user per day, week, month.
+Show as simple table.
+Calculate total.
+Exclude certain projects from total (but still consider them correctly when determining
+timespans!).
 
 Calculate duration in GUI
 
-Proper editing of start time in GUI
-
-Drag-drop-editing of start time in GUI
+Limit start time dragging to start time of surrounding entries.
+(Model needs to know about next/previous entry for this.)
 
 
 
@@ -59,6 +62,7 @@ Adjust duration with drag-and-drop
 
 
 
+
 DONE
 ====
 
@@ -69,7 +73,7 @@ Implement "delete" button.
 ...and update sync method to cope along the way.
 
 
-Deal with "delete" properly: 
+Deal with "delete" properly:
  - "deleted" entries are just ordinary entries with the "deleted" attribute
    set.
  - Sync just like everything else. But simply don't display them.
@@ -77,3 +81,7 @@ Deal with "delete" properly:
    to be synced downstream in the first place.
 
 Add callbacks into model to inform view about start/end of syncing.
+
+Proper editing of start time in GUI
+
+Drag-drop-editing of start time in GUI

@@ -10,7 +10,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 # the toolbar is only enabled in debug mode:
-app.debug = True
+app.debug = False
 app.config['SECRET_KEY'] = get_flask_key()
 toolbar = DebugToolbarExtension(app)
 

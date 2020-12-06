@@ -126,6 +126,32 @@ function tut2_createDefaultView() {
         return Date.parse(isostr);  /* @future: "using Date.parse() is strongly discouraged" */
     };
 
+    // Take a "time in ms" value and show its hour and minute components in the current local
+    // timezone. This is used for manually editing time entries. Usually, one would only want
+    // to alter hours and minutes. To convert back to a full timestamp, use fromLocalHoursMinutes(),
+    // but note that this function also needs a reference timestamp (see below).
+    var toLocalHoursMinutes = function(time_ms) {
+        var d = new Date(time_ms);
+        return prefixWithZeroes(d.getHours())+':'+prefixWithZeroes(d.getMinutes());
+    }
+
+    // Convert the given String (hopefully of the format HH:MM) into a "ms since epoc" value.
+    // Use the specified timestamp as a frame of reference.
+    // This implementation cannot currently cross (local time zone) day boundaries.
+    // (@future: We could narrow this down further, to also not allow crossing the boundaries
+    // set by the previous and next time entries.)
+    var fromLocalHoursMinutes = function(hhmmstr, reference_time_ms) {
+        var d = new Date(reference_time_ms);
+        // approach: simply replace HH and MM components of the reference timestamp
+        var components = hhmmstr.split(":");
+        d.setHours(parseInt(components[0]));
+        d.setMinutes(parseInt(components[1]));
+        d.setSeconds(0);
+        d.setMilliseconds(0);
+        console.log("fromLocalHoursMinutes", hhmmstr, reference_time_ms, d, d.getTime());
+        return d.getTime();
+    }
+
     // get the name of the day
     var dayName=function(d) {
         var names=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -313,7 +339,7 @@ function tut2_createDefaultView() {
             val=entry.getProject();
         } else if($(edit).hasClass("tut_starttime_edit")) {
             var ms = entry.getStarttimeUtcMs();
-            val = toISO8601(new Date(ms));
+            val = toLocalHoursMinutes(ms);
         } else {
             console.log("don't know this field");
             alert("sorry don't know this field");
@@ -326,19 +352,21 @@ function tut2_createDefaultView() {
     var itemBlurred=function(event) {
         console.log('blurred');
         var view=$(this).siblings('.tut_viewbox');
-        view.html( $(this).val() );
         // store to model
         var entryroot=$(this).parents(".tut_entry");
         var uid=decodeID($(entryroot).attr("id"));
         var entry=mymodel.getEntryByUID(uid);
         var val=$(this).val();
         if($(this).hasClass("tut_logentry_edit")) {
+            view.html( $(this).val() );   // update view
             entry.setLogentry(val);
         } else if($(this).hasClass("tut_proj_edit")) {
+            view.html( $(this).val() );   // update view
             entry.setProject(val);
         } else if($(this).hasClass("tut_starttime_edit")) {
-            var ms = fromISO8601(val);
+            var ms = fromLocalHoursMinutes(val, entry.getStarttimeUtcMs());
             entry.setStarttimeUtcMs(ms);
+            view.html("ab:cd:ef");   // update view
         } else {
             console.log("cannot store this field");
             alert("sorry cannot store - don't know how");

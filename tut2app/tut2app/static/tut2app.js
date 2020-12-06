@@ -26,21 +26,21 @@ var mymodel;
             //mymodel.fillModelWithSomeExampleData();
             //mymodel.populateFromLocalStorage();
         }
-     
+
         console.info("mark B-2");
-	
+
         // Delete all statically coded (demo-)entries
-	// @future: there shouldn't be any in the final release template
+        // @future: there shouldn't be any in the final release template
         var c=$('#tut-entries-container');
         c.empty();
 
-	// (Debug)-Functionality
-	// @future: these should disappear from the final GUI, as all
-	// this will happen automatically.
+        // (Debug)-Functionality
+        // @future: these should disappear from the final GUI, as all
+        // this will happen automatically.
         $("#updategui").on('click',null,null,function() {
             myview.redrawTutEntriesUI(
-		[mymodel.createTemplateEntry()]
-		.concat(mymodel.getAllEntries()));
+                [mymodel.createTemplateEntry()]
+                .concat(mymodel.getAllEntries()));
         });
 
         $("#syncwithlocalstorage").on('click',null,null,function() {
@@ -64,12 +64,12 @@ var mymodel;
         // update entire UI every second. we'll see how well this works...
         // don't even mention race conditions... although i think there might
         // be *none* as javascript is "run to completion" (isn't it?).
-        // this makes the browser eat up significant CPU power 
+        // this makes the browser eat up significant CPU power
         // (on my system: 30% compared to <10%) - but this is with
         // developer tools open. Drops to <10% with developer tools closed.
         // so we should probably optimise this away in a release version.
-        // for each view, it is clear that, in general, we only need to 
-        // update the template timestamp and the duration of the first 
+        // for each view, it is clear that, in general, we only need to
+        // update the template timestamp and the duration of the first
         // entry. Except on boundaries (new "day" in configured timezone),
         // but we can code in those special cases.
         // Still, even our naive "always sync everything" approach works.
