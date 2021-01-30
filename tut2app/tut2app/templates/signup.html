@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- Signup Template -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="static/tut2_default.css" type="text/css">
+    <title>tut2 login page</title>
+  </head>
+  <body>
+<!-- Flashed Messages -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <h1>Flashed messages</h1>
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+<!-- Form for signing up -->
+    <h1>Sign Up Form</h1>
+    <form method="post">
+        <table>
+            <tr>
+                <th>User Name:</th>
+                <th><input type="text" name="username"></th>
+            </tr>
+            <tr>
+                <th>Email*:</th>
+                <th><input type="text" name="userid" /></th>
+            </tr>
+            <tr>
+                <th>Password*:</th>
+                <th><input type="password" name="password" /></th>
+            </tr>
+        </table>
+        <input type="submit" content="Sign Up">
+    </form>
+<p>Fields marked with <strong>*</strong> must be filled out.</p>
+    <hr/>
+<!-- Link to login page -->
+    <p>Already have an account? <!--suppress HtmlUnknownTarget -->
+        <a href="../login">Log in!</a></p>
+  </body>
+</html>

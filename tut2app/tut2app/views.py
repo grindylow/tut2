@@ -5,6 +5,8 @@ from tut2app import login_manager
 from tut2app.model import model
 from tut2app.model import users
 import logging
+import re
+from email_validator import validate_email, EmailNotValidError
 
 mymodel = model.Model()  # this might not be right - does it need to go into 'g'?
 login_manager.login_view = 'login'
@@ -16,26 +18,53 @@ def hello():
 
 
 @login_manager.user_loader
-def load_user(userid):
-    return users.User.retrieve_based_on_id(userid)
+def load_user(email):
+    return users.User.retrieve_based_on_email(email)
 
+def create_user(username, email, password):
+    logging.info("Verified Credentials.")
+    usernamestr = username if username != "" else "No Information"
+    logging.debug("Username: " + usernamestr)
+    logging.debug("Email: " + email)
+    logging.debug("Password: " + password)
+    return users.User.create_user(username, email, password)
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.form:
+        # validate the entries
+        logging.debug("Validating the entries.")
+        username = request.form['username']
+        userid = request.form['userid']
+        password = request.form['password']
+        error_str = check_sign_up_credentials(username, userid, password)
+        if error_str == "":
+            # Credentials are ready for sign up
+            if (create_user(username, userid, password)):
+                flash("Successfully created user.")
+            else:
+                flash("Error while creating user.")
+            pass
+        else:
+            flash(error_str)
+
+    return render_template("signup.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.form:
         # login and validate the user...
-        myuser = users.User.retrieve_based_on_given_credentials(
-            name=request.form['username'],
+        my_user = users.User.retrieve_based_on_given_credentials(
+            email=request.form['email'],
             password=request.form['password'])
-        if not myuser:
-            flash("invalid credentials")
+        if not my_user:
+            flash("Invalid credentials.")
         else:
-            login_user(myuser)
+            login_user(my_user)
             flash("Logged in successfully.")
             return redirect(url_for("track"))
             # @future: could request.args.get("next") or , but make sure to VALIDATE next!
     return render_template("login.html")
-
 
 @app.route("/logout")
 def logout():
@@ -59,6 +88,36 @@ def reports():
         exclude_regex = request.form['exclude_regex']
         report = mymodel.generate_report(current_user.get_uid())  # @future: startdate,enddate,timezone,etc,etc
     return render_template('report_generic.html', report=report)
+
+
+REGEX_USER_NAME = "^.*$"  # Everything
+REGEX_PASSWORD = "^.{3,30}$"  # Everything
+
+"""
+Check if an email address is valid.
+"""
+def val_email(email: str) -> bool:
+    try:
+        validate_email(email) # Throws EmailNotValidError when invalid.
+        # Email is valid.
+        return True
+    except EmailNotValidError as e:
+        # Email is invalid.
+        return False
+
+def check_sign_up_credentials(username: str, email: str, password: str) -> str:
+    error_str = ""
+    if not re.search(REGEX_USER_NAME, username):
+        error_str = "Invalid Username"
+    elif not val_email(email):
+        error_str = "Invalid Email"
+    elif not re.search(REGEX_PASSWORD, password):
+        error_str = "Invalid password"
+    elif users.User.retrieve_based_on_username(username):
+        error_str = "Username already taken"
+    elif users.User.retrieve_based_on_email(email):
+        error_str = "Email already taken"
+    return error_str
 
 @app.route("/report_table", methods=["GET", "POST"])
 @login_required
