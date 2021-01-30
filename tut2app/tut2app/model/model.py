@@ -212,6 +212,14 @@ class Model:
         Optional: Accumulate entries according to accumulation pattern(s).
         (e.g.: subprojects)
         Optional: Ignore certain entries.
+
+        Additionally (F201):
+        Accumulate entries if they match specific conditions, currently hard-coded
+        to accumulate
+          - total sum
+          - total off-time (i.e. entries starting with "0")
+          - total working time (i.e. entries not starting with "0")
+
         @param starttime_ms Start of accumulation period, inclusive
         @param endtime_ms   End of accumulation period, exclusive
 
@@ -230,6 +238,11 @@ class Model:
 
         regex_proj_subproj = r"^\s*(?P<project>[^ .]+)(\.(?P<subproject>[a-zA-Z0-9]+)|)"
         regex_ignore = r"..."
+
+        synthetic_projects = { '$sum': { 'regex': r'' },
+                               '$off': { 'regex': r'^\s*0'},
+                               '$on':  { 'regex': r'^\s*[^0\s]'}
+                             }
 
         cur_endtime = endtime_ms
 
@@ -295,6 +308,15 @@ class Model:
             if not subprojectstr in accumulator[projectstr]['subprojects']:
                 accumulator[projectstr]['subprojects'][subprojectstr] = 0
             accumulator[projectstr]['subprojects'][subprojectstr] += duration_ms
+
+            # special "synthetic" = "automatically generated" projects (feature F201)
+            for k in synthetic_projects:
+                p = synthetic_projects[k]
+                matches = re.search(p['regex'], projectstr)
+                if matches:
+                    if not k in accumulator:
+                        accumulator[k] = {'total_ms':0, 'subprojects':{}}
+                    accumulator[k]['total_ms'] = accumulator[k]['total_ms'] + duration_ms
 
             accumulator[0]['total_ms'] += duration_ms
 
