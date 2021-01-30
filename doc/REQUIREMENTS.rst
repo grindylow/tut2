@@ -59,6 +59,11 @@ The view syncs to the model on request.
 
 The database syncs to the model on request.
 
+F201: Reports include automatically generated summary hours for categories
+"off-time", "on-time" and "total time".
+
+F202: Make categories from F201 freely customisable.
+
 Ways of adjusting an existing Entry:
 
  * Drag the Up-Down-Arrow to the left of the start time with the mouse.
@@ -75,5 +80,5 @@ Ways of adjusting an existing Entry:
 
  * Drag the Up-Down-Arrow to the right of the duration with the mouse. Behaviour will be similar
    to adjusting the start time by dragging (see above).
-   
+
  * Drag the entire entry to a new location.
