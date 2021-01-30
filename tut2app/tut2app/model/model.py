@@ -310,8 +310,7 @@ class Model:
             accumulator[projectstr]['subprojects'][subprojectstr] += duration_ms
 
             # special "synthetic" = "automatically generated" projects (feature F201)
-            for k in synthetic_projects:
-                p = synthetic_projects[k]
+            for k, p in synthetic_projects.items():
                 matches = re.search(p['regex'], projectstr)
                 if matches:
                     if not k in accumulator:
