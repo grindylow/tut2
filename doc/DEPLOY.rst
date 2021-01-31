@@ -48,14 +48,14 @@ this is where we would restore an existing database.
     cat secrets.conf
     mongo admin -u tut2rw -p '...'   # Password for 'tut2rw' user taken from secrets.conf, created by setup_wizard.py
     use tut2db
-    db.tut2users.insert({id:'user1', salt:'...', fullname:'Krub Bub', tut2_uid:'user1-x',password_hash:'...'})
+    db.tut2users.insert({id:'aaaa@bbb.de', salt:'sugar', tut2_uid:'0',password_hash:'...'})
 
 Now try to log in via the web interface. Watch the log output.
 ::
 
     db.tut2users.remove({id:'user1'})
     # then insert again with correct hash taken from logging output
-
+    # e.g. "db.tut2users.insert({id:'aaaa@bbb.de', salt:'sugar', tut2_uid:'0', password_hash:'sd2dsuhfh128S798uwi9di24886dfa99ß02e3#dasdi98u23r'})"
 
 WSGI Setup
 ----------

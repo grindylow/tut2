@@ -21,26 +21,23 @@ def hello():
 def load_user(email):
     return users.User.retrieve_based_on_email(email)
 
-def create_user(username, email, password):
+def create_user(email, password):
     logging.info("Verified Credentials.")
-    usernamestr = username if username != "" else "No Information"
-    logging.debug("Username: " + usernamestr)
     logging.debug("Email: " + email)
     logging.debug("Password: " + password)
-    return users.User.create_user(username, email, password)
+    return users.User.create_user(email, password)
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.form:
         # validate the entries
         logging.debug("Validating the entries.")
-        username = request.form['username']
-        userid = request.form['userid']
+        email = request.form['email']
         password = request.form['password']
-        error_str = check_sign_up_credentials(username, userid, password)
+        error_str = check_sign_up_credentials(email, password)
         if error_str == "":
             # Credentials are ready for sign up
-            if (create_user(username, userid, password)):
+            if (create_user(email, password)):
                 flash("Successfully created user.")
             else:
                 flash("Error while creating user.")
@@ -86,11 +83,10 @@ def reports():
         starttime = request.form['starttime']
         endtime = request.form['endtime']
         exclude_regex = request.form['exclude_regex']
-        report = mymodel.generate_report(current_user.get_uid())  # @future: startdate,enddate,timezone,etc,etc
+        report = mymodel.generate_report(current_user.get_tut2uid())  # @future: startdate,enddate,timezone,etc,etc
     return render_template('report_generic.html', report=report)
 
 
-REGEX_USER_NAME = "^.*$"  # Everything
 REGEX_PASSWORD = "^.{3,30}$"  # Everything
 
 """
@@ -105,16 +101,12 @@ def val_email(email: str) -> bool:
         # Email is invalid.
         return False
 
-def check_sign_up_credentials(username: str, email: str, password: str) -> str:
+def check_sign_up_credentials(email: str, password: str) -> str:
     error_str = ""
-    if not re.search(REGEX_USER_NAME, username):
-        error_str = "Invalid Username"
-    elif not val_email(email):
+    if not val_email(email):
         error_str = "Invalid Email"
     elif not re.search(REGEX_PASSWORD, password):
         error_str = "Invalid password"
-    elif users.User.retrieve_based_on_username(username):
-        error_str = "Username already taken"
     elif users.User.retrieve_based_on_email(email):
         error_str = "Email already taken"
     return error_str
@@ -130,7 +122,7 @@ def report_table():
     currenttime = request.args.get('currenttime',10, type=int)
     logging.info("report_table(%s)", (starttime, endtime, interval))
 
-    reportdata = mymodel.generate_report(current_user.get_uid(),
+    reportdata = mymodel.generate_report(current_user.get_tut2uid(),
         starttime_ms=starttime, endtime_ms=endtime, interval_ms=interval,
         currenttime_ms=currenttime, maxiter=20)
 
@@ -169,7 +161,7 @@ def api_queryentries():
     ]
 
     fromrev = request.args.get('fromrev', 0, type=int)
-    entries = mymodel.queryEntries(fromrev, current_user.get_uid())
+    entries = mymodel.queryEntries(fromrev, current_user.get_tut2uid())
     r = {'r': 0,  # 0=OK, 1=NOT_AUTHORISED, ... (or use HTTP ERROR CODES!!!!)
          'entries': entries,
          '_debug_fromrev': fromrev}
@@ -184,7 +176,7 @@ def api_addorupdateentry():
        see tut2model_serverstub:addOrUpdateEntry()
     """
     entries = request.get_json()['entries']  # this is the parsed JSON string (i.e. a dict)
-    revnrs = mymodel.addOrUpdateEntries(entries, current_user.get_uid())
+    revnrs = mymodel.addOrUpdateEntries(entries, current_user.get_tut2uid())
 
     r = {'r': 0,  # 0=OK, 1=NOT_AUTHORISED, ... (or use HTTP ERROR CODES!!!!)
          'revnrs': revnrs,

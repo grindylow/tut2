@@ -42,8 +42,8 @@ class User:
         logger.debug("is_anonymous() was called")
         return self._is_anonymous
 
-    def get_uid(self):
-        logger.debug("User.get_uid(%s) was called" % self.get_id())
+    def get_tut2uid(self):
+        logger.debug("User.get_tut2uid(%s) was called" % self.get_id())
         return self._tut2uid
 
     def calc_hash(self, pwd):
@@ -70,7 +70,9 @@ class User:
         return False
 
     @staticmethod
+    # Outdated
     def retrieve_based_on_username(username):
+        logger.error("retrieve_based_on_username() called")
         """
         Check if (username) tuple identifies a valid user.
         if so, return a User object representing that user.
@@ -109,7 +111,6 @@ class User:
             u._is_active = True
             u._is_authenticated = True
             u._is_anonymous = False
-            u.fullname = entry['fullname']
             u.email = email
             # app-specific extensions
             u._tut2uid = entry['tut2_uid']
@@ -169,21 +170,20 @@ class User:
     Add a new user to the database. Credentials must be already valid.
     """
     @staticmethod
-    def create_user(user_name: str, email : str, password: str):
+    def create_user(email : str, password: str):
         # Create user object
         user = User()
 
         user._salt = "sugar"
         # Set Password hash
         user._password_hash = user.calc_hash(password.encode('utf-8'))
-        # Set the rest
-        user.fullname = user_name
+        # Set email
         user.email = email
 
         # Actually add the user to the database
         db = tut2db.get_db()
         uid = User.get_next_uid()
-        if db.tut2users.insert_one({'id': user.email, 'salt': user._salt, 'fullname': user.fullname, 'tut2_uid': uid,'password_hash': user._password_hash}).inserted_id:
+        if db.tut2users.insert_one({'id': user.email, 'salt': user._salt, 'tut2_uid': uid,'password_hash': user._password_hash}).inserted_id:
             logger.info("Successfully created user with email '" + user.email + "' and uid '" + str(uid) + "'")
             return True
         return False
