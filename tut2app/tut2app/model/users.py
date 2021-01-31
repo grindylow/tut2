@@ -49,7 +49,7 @@ class User:
     def calc_hash(self, pwd):
         """
         Calculate hash from salt and given password.
-        Password needs to be in 'string' at this stage.
+        Password needs to be in 'bytes' at this stage.
         Return a base-64-encoded version of this hash value.
         """
         h = hashlib.sha512(self._salt.encode('utf-8') + pwd)
