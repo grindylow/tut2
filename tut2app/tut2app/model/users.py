@@ -185,5 +185,5 @@ class User:
         uid = User.get_next_uid()
         if db.tut2users.insert_one({'id': user.email, 'salt': user._salt, 'tut2_uid': uid,'password_hash': user._password_hash}).inserted_id:
             logger.info("Successfully created user with email '" + user.email + "' and uid '" + str(uid) + "'")
-            return True
-        return False
+            return user
+        return None

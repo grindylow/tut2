@@ -21,7 +21,7 @@ def hello():
 def load_user(email):
     return users.User.retrieve_based_on_email(email)
 
-def create_user(email, password):
+def create_user(email: str, password: str) -> users.User:
     logging.info("Verified Credentials.")
     logging.debug("Email: " + email)
     logging.debug("Password: " + password)
@@ -37,8 +37,11 @@ def signup():
         error_str = check_sign_up_credentials(email, password)
         if error_str == "":
             # Credentials are ready for sign up
-            if (create_user(email, password)):
+            u = create_user(email, password)
+            if (u):
                 flash("Successfully created user.")
+                login_user(users.User.retrieve_based_on_given_credentials(email, password))
+                return redirect(url_for("track"))
             else:
                 flash("Error while creating user.")
             pass
