@@ -98,6 +98,14 @@
                         var d = new Date(millis);
                         $(this).html(dateStr(d));
                     });
+
+                    // colour in project names
+                    $(".projectname").each(function(idx) {
+                        var s = $(this).text();
+                        console.log("Colouring...", idx, "'"+s+"'");
+                        var colval = tut2_pick_colour_for_project(s);
+                        $(this).css({'background-color':colval});
+                    });
                 }
             });
 

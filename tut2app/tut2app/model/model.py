@@ -246,7 +246,7 @@ class Model:
 
         cur_endtime = endtime_ms
 
-        accumulator = { 0: {'total_ms': 0} }  # entry 0 sums up all durations
+        accumulator = {}
 
         if currenttime_ms<starttime_ms:
             # the answer is easy
@@ -316,8 +316,6 @@ class Model:
                     if not k in accumulator:
                         accumulator[k] = {'total_ms':0, 'subprojects':{}}
                     accumulator[k]['total_ms'] = accumulator[k]['total_ms'] + duration_ms
-
-            accumulator[0]['total_ms'] += duration_ms
 
             if corrected_starttime <= starttime_ms:
                 break  # we're done

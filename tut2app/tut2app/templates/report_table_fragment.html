@@ -8,9 +8,7 @@
     </thead>
     {% for project in reportdata["projectlist"] if project!=0 %}
     <tr>
-        <td>
-            {{project}}
-        </td>
+        <td class="projectname">{{project}}</td>
         {% for item in reportdata["accumulated_times_for_interval"] %}
             <td align="right">
             {% if project in item %}
@@ -22,14 +20,4 @@
         {% endfor %}
     </tr>
     {% endfor %}
-    <tr>
-        <td>
-            SUM
-        </td>
-        {% for item in reportdata["accumulated_times_for_interval"] %}
-            <td align="right">
-            {{item[0]["total_ms"]}}
-            </td>
-        {% endfor %}
-    </tr>
 </table>
