@@ -24,7 +24,7 @@ def load_user(email):
 def create_user(email: str, password: str) -> users.User:
     logging.info("Verified Credentials.")
     logging.debug("Email: " + email)
-    logging.debug("Password: " + password)
+    logging.debug("Password: ****")
     return users.User.create_user(email, password)
 
 @app.route("/signup", methods=["GET", "POST"])

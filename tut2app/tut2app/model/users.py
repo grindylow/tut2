@@ -21,16 +21,20 @@ class User:
         self._is_authenticated = False
         self._is_anonymous = True
         self._tut2uid = None
-        self.email = "john@marshmellow.com"
+        self._salt = "pepper"
+        self._email = "john@marshmallow.com"
 
     @property
     def is_active(self):
         logger.debug("is_active() was called")
         return self._is_active
 
+    def get_email(self):
+        logger.debug("get_email() was called")
+        return self._email
+
     def get_id(self):
-        logger.debug("get_id() was called")
-        return self.email
+        return self.get_email()
 
     @property
     def is_authenticated(self):
@@ -43,7 +47,7 @@ class User:
         return self._is_anonymous
 
     def get_tut2uid(self):
-        logger.debug("User.get_tut2uid(%s) was called" % self.get_id())
+        logger.debug("User.get_tut2uid(%s) was called" % self.get_email())
         return self._tut2uid
 
     def calc_hash(self, pwd):
@@ -61,42 +65,13 @@ class User:
         Passwords are stored as SHA2 hashes, salted with the salt
         specified in the user entry.
         """
-        their_hash = self.calc_hash(password.encode('utf8'))
+        their_hash = self.calc_hash(password.encode('utf-8'))
         logger.info('Their hash is: %s' % their_hash)
         logger.info('My hash is   : %s' % self._password_hash)
         if their_hash == self._password_hash:
-            logger.info('Passwords match. Access granted for user "%s".' % self.email)
+            logger.info('Passwords match. Access granted for user "%s".' % self._email)
             return True
         return False
-
-    @staticmethod
-    # Outdated
-    def retrieve_based_on_username(username):
-        logger.error("retrieve_based_on_username() called")
-        """
-        Check if (username) tuple identifies a valid user.
-        if so, return a User object representing that user.
-        If not, return None.
-        """
-        logger.info("retrieve_based_on_username() was called with username '%s'" % username)
-        u = None
-        db = tut2db.get_db()
-        entry = db.tut2users.find_one({'fullname': username})
-        logger.info("found entry: %s" % entry)
-
-        if entry:
-            u = User()
-            u._is_active = True
-            u._is_authenticated = False
-            u._is_anonymous = False
-            u.fullname = username
-            u.email = entry['id']
-            # app-specific extensions
-            u._tut2uid = entry['tut2_uid']
-            u._password_hash = entry['password_hash'].encode('utf8')
-            u._salt = entry['salt'].encode('utf8')
-        logger.info('Returning user: %s' % u)
-        return u
 
     @staticmethod
     def retrieve_based_on_email(email):
@@ -111,7 +86,7 @@ class User:
             u._is_active = True
             u._is_authenticated = True
             u._is_anonymous = False
-            u.email = email
+            u._email = email
             # app-specific extensions
             u._tut2uid = entry['tut2_uid']
             u._password_hash = entry['password_hash']
@@ -137,6 +112,7 @@ class User:
 
     @staticmethod
     def get_next_uid():
+        return 222
         db = tut2db.get_db()
         entries = list(db.tut2users.find().sort([('tut2_uid', -1)]).limit(1))
         if len(entries)==1:
@@ -160,12 +136,6 @@ class User:
         else:
             raise Exception("More than 1 Entry")
 
-    @staticmethod
-    def delete_all_users():
-        # REMOVE all users from the database
-        tut2db.get_db().tut2users.remove({})
-        logger.warning("Deleted all users.")
-
     """
     Add a new user to the database. Credentials must be already valid.
     """
@@ -173,17 +143,14 @@ class User:
     def create_user(email : str, password: str):
         # Create user object
         user = User()
-
-        user._salt = "sugar"
-        # Set Password hash
+        user._salt = "sugar"  # @todo generate random string
         user._password_hash = user.calc_hash(password.encode('utf-8'))
-        # Set email
-        user.email = email
+        user._email = email
 
         # Actually add the user to the database
         db = tut2db.get_db()
         uid = User.get_next_uid()
-        if db.tut2users.insert_one({'id': user.email, 'salt': user._salt, 'tut2_uid': uid,'password_hash': user._password_hash}).inserted_id:
-            logger.info("Successfully created user with email '" + user.email + "' and uid '" + str(uid) + "'")
+        if db.tut2users.insert_one({'id': user._email, 'salt': user._salt, 'tut2_uid': uid,'password_hash': user._password_hash}).inserted_id:
+            logger.info("Successfully created user with email '" + user._email + "' and uid '" + str(uid) + "'")
             return user
         return None
