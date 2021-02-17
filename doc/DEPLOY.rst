@@ -40,22 +40,7 @@ as follows::
  python runserver.py
 
 
-Since TUT2 doesn't support on-the-fly user creation yet, we will need
-to create a user before we can do anything useful. Alternatively,
-this is where we would restore an existing database.
-::
-
-    cat secrets.conf
-    mongo admin -u tut2rw -p '...'   # Password for 'tut2rw' user taken from secrets.conf, created by setup_wizard.py
-    use tut2db
-    db.tut2users.insert({id:'user1', salt:'...', fullname:'Krub Bub', tut2_uid:'user1-x',password_hash:'...'})
-
-Now try to log in via the web interface. Watch the log output.
-::
-
-    db.tut2users.remove({id:'user1'})
-    # then insert again with correct hash taken from logging output
-
+Since TUT2 supports on-the-fly user creation now, we can easily create a user on the website now.
 
 WSGI Setup
 ----------

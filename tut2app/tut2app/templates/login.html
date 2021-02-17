@@ -15,12 +15,15 @@
     {% endfor %}
     </ul>
   {% endif %}
-{% endwith %}    
+{% endwith %}
     <h1>Login Form</h1>
     <form method="post">
-      User: <input type="text" name="username" /> 
+      Email: <input type="text" name="email" />
       Password: <input type="password" name="password" />
       <input type="submit" />
     </form>
+  <hr>
+  <p>Dont have an account? <!--suppress HtmlUnknownTarget -->
+      <a href="..\signup">Create one!</a></p>
   </body>
 </html>

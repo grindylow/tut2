@@ -2,4 +2,4 @@ flask
 flask-debugtoolbar
 flask-login
 pymongo
-
+email-validator
