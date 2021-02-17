@@ -6,7 +6,7 @@
         <th class="columnheader">{{item}}</th>
     {% endfor %}
     </thead>
-    {% for project in reportdata["projectlist"] if project!=0 %}
+    {% for project in reportdata["projectlist"] %}
     <tr>
         <td class="projectname">{{project}}</td>
         {% for item in reportdata["accumulated_times_for_interval"] %}
