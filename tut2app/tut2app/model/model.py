@@ -20,7 +20,10 @@ class Model:
         # This is needed for our handmade 'auto-incrementing' revision number.
         # Note: Trying to (re)creating an existing index is overlooked gracefully by mongodb.
         logger.info('Ensuring database schema is set up...')
-        db.tut2entries.create_index([('revision', pymongo.DESCENDING)], unique=True)
+        db.tut2entries.create_index([('revision', pymongo.DESCENDING)], unique=True,
+                                    name="Enforce globally unique revision numbers!")
+        db.tut2users.create_index("id", unique=True, name="Enforce unique user ids=email addresses!")
+        db.tut2users.create_index("tut2_uid", unique=True, name="Enforce unique internal user ids!")
         logger.info('...done')
 
     def retrieve_next_rev_no(self, db):

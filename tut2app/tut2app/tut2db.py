@@ -7,24 +7,42 @@ import configparser
 import logging
 logger = logging.getLogger(__name__)
 
-DB_USERNAME = 'tut2rw'
 _db = None
+
 
 def connect_to_database():
     """
     Connect to our mongodb database as a read/write user.
     Returns the instance of the connected PyMongo database connector.
-    Requires self.cfg to already be populated with this app's config file,
-    because this is where we will look up our database password.
+
+    Verifies that database is set up appropriately (unique constraints etc),
+    fails if this is not the case.
+
+    -Requires self.cfg to already be populated with this app's config file,
+    because this is where we will look up our database password.-
+
     """
     logger.debug("Retrieving database login information")
-    cfg = configparser.ConfigParser()
-    cfg.read("secrets.conf")
-    password = cfg['passwords'][DB_USERNAME]
+
+    conf = configparser.ConfigParser()
+    conf.read("tut2.conf")
+    mongo_host = conf.get('db', 'mongodb_host', fallback="localhost")
+    mongo_port = conf.getint('db', 'mongodb_port', fallback=27017)
+
+    userdb_name = conf.get('db', 'userdb_name', fallback="tut2db")
+    tut2db_name = conf.get('db', 'tut2db_name', fallback="tut2db")
+    tut2rwuser_name = conf.get('db', 'tut2rw_user_name', fallback="tut2rw")
+    tut2rwuser_password = conf.get('db', 'tut2rw_user_password', fallback="default")
+
     logger.debug("creating MongoClient...")
-    client = MongoClient(username=DB_USERNAME, password=password)
+    logger.debug(f"host={mongo_host}, port={mongo_port}, authSource={userdb_name}, username={tut2rwuser_name}, password={tut2rwuser_password})")
+    client = MongoClient(host=mongo_host, port=mongo_port, authSource=userdb_name,
+                         username=tut2rwuser_name, password=tut2rwuser_password)
+    print(client.server_info())
     logger.debug("creating database accessor...")
-    return client.tut2db
+    db = client[tut2db_name]
+    return db
+
 
 def get_db():
     """

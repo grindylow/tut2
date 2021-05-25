@@ -1,14 +1,15 @@
 # A regular TUT2 user.
 #
-# Users are contained in the database.
-# Users have (login-)IDs and passwords. Internally, they are
+# Users are contained in the (tut2db) database.
+# Users have (login-)IDs (e-mail address) and passwords. Internally, they are
 # referenced by UIDs.
 #
-# Currently, there is no provision for automatically creating
-# users - you will need to create them manually in the database.
 
 import hashlib
-import base64
+#import base64
+import secrets
+import pymongo
+
 from tut2app import tut2db
 import logging
 
@@ -34,6 +35,7 @@ class User:
         return self._email
 
     def get_id(self):
+        logger.debug("get_id() was called")
         return self.get_email()
 
     @property
@@ -50,14 +52,16 @@ class User:
         logger.debug("User.get_tut2uid(%s) was called" % self.get_email())
         return self._tut2uid
 
-    def calc_hash(self, pwd):
+    def calc_hash(self, pwd: bytes):
         """
         Calculate hash from salt and given password.
-        Password needs to be in 'bytes' at this stage.
-        Return a base-64-encoded version of this hash value.
+        Password needs to be in 'bytes' (may have been converted from, for example, utf-8 earlier on).
+        Salt is also stored as 'bytes' ('binary' in Mongo parlance).
+
+        @returns a textual representation of this hash value.
         """
-        h = hashlib.sha512(self._salt.encode('utf-8') + pwd)
-        return base64.b64encode(h.digest())
+        h = hashlib.sha512(self._salt + pwd)
+        return h.hexdigest()
 
     def password_validates(self, password):
         """
@@ -112,27 +116,30 @@ class User:
 
     @staticmethod
     def get_next_uid():
-        return 222
+        """
+        Uniqueness cannot be guaranteed with this implementation. Ultimately, the database has to
+        guarantee uniqueness of the uid field.
+        """
         db = tut2db.get_db()
         entries = list(db.tut2users.find().sort([('tut2_uid', -1)]).limit(1))
-        if len(entries)==1:
-            entry = entries[0] # Get the first and only entry
+        if len(entries) == 1:
+            entry = entries[0]  # Get the first and only entry
             logger.debug("Entry: " + str(entry))
-            if (entry):
+            if entry:
                 uid = entry['tut2_uid']
                 logger.debug("Entry UID: " + str(uid))
                 try:
-                    return uid+1 # Try to return the NEXT uid
+                    return uid+1  # Try to return the NEXT uid
                 except Exception as e:
                     logger.error("Exception while trying to get next uid.")
                     raise e
             else:
                 raise Exception("Entry is null")
-        elif len(entries)==0:
+        elif len(entries) == 0:
             logger.warning("No Entries. This should mean there are NO users in the database.")
             logger.warning("Creating first uid: 0")
             # Return the FIRST uid
-            return 0
+            return 223
         else:
             raise Exception("More than 1 Entry")
 
@@ -140,17 +147,31 @@ class User:
     Add a new user to the database. Credentials must be already valid.
     """
     @staticmethod
-    def create_user(email : str, password: str):
+    def create_user(email: str, password: str):
         # Create user object
         user = User()
-        user._salt = "sugar"  # @todo generate random string
+        user._salt = secrets.token_bytes(17)   # a random salt for each user!
         user._password_hash = user.calc_hash(password.encode('utf-8'))
         user._email = email
 
         # Actually add the user to the database
         db = tut2db.get_db()
-        uid = User.get_next_uid()
-        if db.tut2users.insert_one({'id': user._email, 'salt': user._salt, 'tut2_uid': uid,'password_hash': user._password_hash}).inserted_id:
+
+        uid = 0
+        result = 0
+        retries = 10
+        while retries:
+            retries = retries-1
+            uid = User.get_next_uid()
+            try:
+                result = db.tut2users.insert_one({'id': user._email, 'salt': user._salt, 'tut2_uid': uid,
+                                                 'password_hash': user._password_hash}).inserted_id
+                break
+            except pymongo.errors.DuplicateKeyError:
+                logger.warning('duplicate key error on insert_one(user) - trying again...')
+                continue
+
+        if result:
             logger.info("Successfully created user with email '" + user._email + "' and uid '" + str(uid) + "'")
             return user
         return None

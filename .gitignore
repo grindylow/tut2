@@ -59,3 +59,6 @@ secrets.conf
 *~
 _build/
 doc/out/
+tut2.conf
+tut2_mongo_datadir/
+

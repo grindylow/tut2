@@ -13,7 +13,7 @@
     <script src="static/reporting.js"></script>
 {% block extra_head_lines %}
 {% endblock %}
-    <title>{{ current_user.fullname }} - tut2</title>
+    <title>tut2 - {{ current_user.get_id() }}</title>
   </head>
   <body>
     <div class="tut_settings_menu">
