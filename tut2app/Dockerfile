@@ -6,6 +6,7 @@ COPY . .
 #RUN apt install python3 python3-pip -y
 
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir gunicorn
 
 ENV TUT2_MONGODB_HOST=mongo
 ENV TUT2_MONGODB_PORT=27017

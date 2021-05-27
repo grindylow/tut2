@@ -2,6 +2,7 @@
 import configparser
 import string
 import random
+import os
 import logging
 logger = logging.getLogger(__name__)
 
@@ -11,8 +12,7 @@ def get_flask_key():
     # we read the key from a file, which we exclude from
     # the source repository
     key = None
-    cfg = configparser.ConfigParser()
-    cfg.read("tut2.conf")
+    cfg = retrieve_config_file()
     if cfg.has_section('keys'):
         s = cfg['keys']
         if 'flask_secret_key' in s:
@@ -24,3 +24,15 @@ def get_flask_key():
             cs = string.digits + string.ascii_letters + '!#$&()*+,-./:;<=>?@[]^_{|}~'
             key = ''.join(random.choice(cs) for _ in range(20))
     return key
+
+
+def retrieve_config_file():
+    conf_file_name = os.environ.get("TUT2_CONF_FILE", "tut2.conf")
+    logging.info(f"(Attempting to) read configuration file {conf_file_name}...")
+    conf = configparser.ConfigParser()
+    if not os.path.isfile(conf_file_name):
+        logging.warning(f"File '{conf_file_name}' does not exist. Using defaults (which will likely not work or at "
+                        "least lead to database authentication failure.")
+        logging.warning(f"(Hint: Specify the name of the configuration file in environment variable TUT2_CONF_FILE.)")
+    conf.read(conf_file_name)
+    return conf

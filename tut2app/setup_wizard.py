@@ -8,10 +8,16 @@ import os.path
 import string
 import random
 
-TUT2CONF_FILENAME = 'tut2.conf'
+import argparse
 
-SECRETS_FILENAME = 'secrets.conf'
-CONFIG_FILENAME = 'tut2.conf'
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('--config-dir', '-C', type=str, default=".",
+                    help='Generate config files in this location')
+args = parser.parse_args()
+
+CONF_PATH = args.config_dir
+TUT2CONF_FILENAME = os.path.join(CONF_PATH, 'tut2.conf')
+SECRETS_FILENAME = os.path.join(CONF_PATH, 'secrets.conf')
 
 PASSWORD_LENGTH = 20
 
@@ -101,8 +107,8 @@ if os.path.isfile(SECRETS_FILENAME):
 else:
     print(" No. Good.")
 
-announce('Checking if "%s" exists already...' % CONFIG_FILENAME)
-if os.path.isfile(CONFIG_FILENAME):
+announce('Checking if "%s" exists already...' % TUT2CONF_FILENAME)
+if os.path.isfile(TUT2CONF_FILENAME):
     print(" Exists. So things are probably already set up appropriately. Or at least we don't want to mess things up.")
     print(" Aborting.")
     exit(2)
@@ -119,11 +125,16 @@ if "TUT2_MONGODB_ADMIN_USER" not in os.environ:
     OKish("\n TUT2_MONGODB_ADMIN_USER environment variable NOT found. Setting up mongodb from scratch.")
     secrets_section = {"mongodb_admin_user": "tut2adminuser",
                        "mongodb_admin_password": makepassword()
-                      }
+                       }
 else:
+    OKish("\n TUT2_MONGODB_ADMIN_USER environment variable found. Using these credentials.")
     secrets_section = {"mongodb_admin_user": os.environ.get("TUT2_MONGODB_ADMIN_USER"),
                        "mongodb_admin_password": os.environ.get("TUT2_MONGODB_ADMIN_PASSWORD")
-                      }
+                       }
+
+announce(f"Creating config directory '{CONF_PATH}' (if it doesn't exist already)...")
+os.makedirs(CONF_PATH, exist_ok=True)
+OK()
 
 secrets = configparser.ConfigParser()
 secrets["secrets"] = secrets_section
@@ -153,12 +164,13 @@ key_section = {"flask_secret_key": makepassword()}
 conf['keys'] = key_section
 OK()
 
-announce(f"Writing {CONFIG_FILENAME}...")
-with open(CONFIG_FILENAME, 'w') as configfile:
+
+announce(f"Writing {TUT2CONF_FILENAME}...")
+with open(TUT2CONF_FILENAME, 'w') as configfile:
     conf.write(configfile)
 OK()
 
-announce(f"Creating read/write user '{db_section['tut2rw_user_name']}' for administrating tut2 database...")
+OKish(f"Creating read/write user '{db_section['tut2rw_user_name']}' for administrating tut2 database...")
 
 announce(f"Connecting to database '{db_section['userdb_name']}'...")
 client = MongoClient(host=db_section['mongodb_host'], port=db_section['mongodb_port'],

@@ -3,7 +3,7 @@ Functions for accessing the (MongoDB) database.
 """
 
 from pymongo import MongoClient
-import configparser
+from . import tut2helpers
 import logging
 logger = logging.getLogger(__name__)
 
@@ -24,8 +24,7 @@ def connect_to_database():
     """
     logger.debug("Retrieving database login information")
 
-    conf = configparser.ConfigParser()
-    conf.read("tut2.conf")
+    conf = tut2helpers.retrieve_config_file()
     mongo_host = conf.get('db', 'mongodb_host', fallback="localhost")
     mongo_port = conf.getint('db', 'mongodb_port', fallback=27017)
 
@@ -38,7 +37,7 @@ def connect_to_database():
     logger.debug(f"host={mongo_host}, port={mongo_port}, authSource={userdb_name}, username={tut2rwuser_name}, password={tut2rwuser_password})")
     client = MongoClient(host=mongo_host, port=mongo_port, authSource=userdb_name,
                          username=tut2rwuser_name, password=tut2rwuser_password)
-    print(client.server_info())
+    logger.debug(f"server_info(): {client.server_info()}")
     logger.debug("creating database accessor...")
     db = client[tut2db_name]
     return db

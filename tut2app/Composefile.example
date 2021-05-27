@@ -2,24 +2,29 @@ version: '3.1'
 
 services:
 
-  mongo:
+  tut2_mongo:
     image: mongo:latest
     volumes:
       - ./tut2_mongo_datadir:/data/db:rw
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: notOverly.Secret
-#    ports:
-#      - 27027:27017
+
+    # Expose mongo port for development access.
+    # Don't do this on production system.
+    #ports:
+    #  - 27027:27017
 
   tut2:
     depends_on:
-      - mongo
+      - tut2_mongo
     image: tut2:latest
     environment:
       TUT2_MONGODB_HOST: mongo
       TUT2_MONGODB_ADMIN_USER: root
       TUT2_MONGODB_ADMIN_PASSWORD: notOverly.Secret
       TUT2_TUT2RW_USER_NAME: grill_tut2_rw_user
+    volumes:
+      - ./tut2_confdir:/etc/tut2.conf.d:rw
     ports:
       - 80:5000
