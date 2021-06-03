@@ -105,13 +105,16 @@ else:
 announce("* Checking if environment variables for auto-configuration exist (TUT2_MONGODB_ADMIN_USER)...")
 secrets_section = {}
 
-if "TUT2_MONGODB_ADMIN_USER" not in os.environ:
+admin_user = os.environ.get("TUT2_MONGODB_ADMIN_USER")
+admin_password = os.environ.get("TUT2_MONGODB_ADMIN_PASSWORD")
+
+if not admin_user:
     OKish("No.")
     print("  TUT2_MONGODB_ADMIN_USER environment variable NOT found. Assuming that no authentication is required.")
     announce("* Checking if mongodb auth mode is enabled...")
     ret = os.system(f"grep -q -e'^auth = true' {MONGO_CONF_FILENAME}")
     if ret:
-        OKish("NOT enabled (yet). Good. We can proceed.")
+        OKish("  (Probably) NOT enabled (yet). Good. We can proceed.")
     else:
         OKish("Enabled.")
         print("  Please disable mogodb authentication, and restart this script.")
@@ -119,9 +122,8 @@ if "TUT2_MONGODB_ADMIN_USER" not in os.environ:
         print("    sudo sed -i 's/^auth = true/#auth = true/g' %s" % MONGO_CONF_FILENAME)
         print("    sudo service mongodb restart")
         exit(3)
-
-admin_user = os.environ.get("TUT2_MONGODB_ADMIN_USER")
-admin_password = os.environ.get("TUT2_MONGODB_ADMIN_PASSWORD")
+else:
+    OKish("Yes. Will use.")
 
 announce(f"* Creating config directory '{CONF_PATH}' (if it doesn't exist already)...")
 os.makedirs(CONF_PATH, exist_ok=True)
@@ -149,8 +151,8 @@ OK()
 if admin_user:
     announce(f"* Connecting to database '{db_section['userdb_name']}' as user '{admin_user}'...")
     client = MongoClient(host=db_section['mongodb_host'], port=db_section['mongodb_port'],
-                         username=secrets_section['mongodb_admin_user'],
-                         password=secrets_section['mongodb_admin_password'])
+                         username=admin_user,
+                         password=admin_password)
 else:
     announce(f"* Connecting to database '{db_section['userdb_name']}'...")
     client = MongoClient(host=db_section['mongodb_host'], port=db_section['mongodb_port'])
