@@ -17,58 +17,50 @@ args = parser.parse_args()
 
 CONF_PATH = args.config_dir
 TUT2CONF_FILENAME = os.path.join(CONF_PATH, 'tut2.conf')
-SECRETS_FILENAME = os.path.join(CONF_PATH, 'secrets.conf')
 
 PASSWORD_LENGTH = 20
 
 MONGO_CONF_FILENAME = '/etc/mongodb.conf'
 MONGO_ADMIN_USER_NAME = 'theUserAdmin'
 
-secrets = configparser.ConfigParser()
-secrets.optionxform = str  # preserve case in section/key names
-mongodbsection = secrets['mongodb'] = {}
 
 def makepassword():
-    cs = string.digits + string.ascii_letters + '!#$&()*+,-./:;<=>?@[]^_{|}~'
+    cs = string.digits + string.ascii_letters + '-.^~'
     pw = ''.join(random.choice(cs) for _ in range(PASSWORD_LENGTH))
     return pw
+
 
 def OK():
     print("OK")
 
+
 def NOK():
     print("## NOK ##")
 
+
 def OKish(s):
     print(s)
+
 
 def announce(s):
     sys.stdout.write(s+' ')
 
 
-def set_up_mongodb():
+def set_up_mongodb_from_scratch():
     announce("Checking if mongodb auth mode is enabled...")
-    print("NOT IMPLEMENTED\n")
+    ret = os.system(f"grep -e '^auth = true' {MONGO_CONF_FILENAME}")
+    if ret:
+        OKish("NOT enabled (yet). Good.")
+    else:
+        OKish("Enabled. Please disable, and restart this script.")
+        announce("You could use the following commands:")
+        announce("    sudo sed -i 's/^auth = true/#auth = true/g' %s" % MONGO_CONF_FILENAME)
+        announce("    sudo service mongodb restart")
+        exit(3)
 
     announce("Connecting to mongodb...")
     client = MongoClient()
     OK()
-
-    announce("Creating database accessor for admin database...")
-    db = client.admin
-    print("OK")
-
-    announce("Creating admin user with rights to create other users...")
-    pwd = makepassword()
-    mongodbsection["mongo_admin_user_name"] = MONGO_ADMIN_USER_NAME
-    mongodbsection["mongo_admin_user_password"] = pwd
-    try:
-        db.command("createUser", MONGO_ADMIN_USER_NAME, pwd=pwd,
-                   roles=["userAdminAnyDatabase"])
-    except pymongo.errors.DuplicateKeyError:
-        OKish('already exists. moving on.')
-    else:
-        OK()
 
     announce("Enabling auth in %s..." % MONGO_CONF_FILENAME)
     os.system("sudo sed -i 's/^#auth = true/auth = true/g' %s" % MONGO_CONF_FILENAME)
@@ -87,10 +79,8 @@ successfully and access its database.
 
 Nothing whatever will be done if any configuration files exist already.
 
-If no mongo admin user account is specified, I will (try) to configure the local mongodb
-server to have an admin user that is able to create data access users and a database and for tut2.
-
-I will store the credentials for this admin user in {SECRETS_FILENAME} for future reference.
+If no mongo admin user account is specified, I will assume that the local mongodb
+server has authentication disabled and will allow me to create users.
 
 I will then create users with r/o and r/w access to the tut2 database.
 
@@ -98,53 +88,44 @@ tut2 will take care of initially populating its database on startup.
 """)
 
 
-announce('Checking if "%s" exists already...' % SECRETS_FILENAME)
-if os.path.isfile(SECRETS_FILENAME):
-    print(" Exists. So things are probably already set up appropriately. ")
-    print(" Or at least we don't want to mess things up.")
-    print(" Therefore we are aborting the initial set-up process, but that's OK!")
-    exit(0)
-else:
-    print(" No. Good.")
-
-announce('Checking if "%s" exists already...' % TUT2CONF_FILENAME)
+announce('* Checking if "%s" exists already...' % TUT2CONF_FILENAME)
 if os.path.isfile(TUT2CONF_FILENAME):
-    print(" Exists. So things are probably already set up appropriately. Or at least we don't want to mess things up.")
-    print(" Aborting.")
-    exit(2)
+    OKish( "Exists.")
+    print( "  So things are probably already set up appropriately. Or at least we don't want to mess things up.")
+    print(f"  If you really want to re-run the setup wizard, delete '{TUT2CONF_FILENAME}' or specify a different")
+    print( "  configuration directory with the -C parameter.")
+    print( "  Aborting setup wizard.")
+    exit(0)
 else:
     print(" No. Good.")
 
 
 # If mongodb access details are specified in any environment variables, we skip the mongodb configuration steps
 # and move right on to setting up the database environment for tut2.
-announce("Checking if environment variables for auto-configuration exist (TUT2_MONGODB_ADMIN_USER)...")
+announce("* Checking if environment variables for auto-configuration exist (TUT2_MONGODB_ADMIN_USER)...")
 secrets_section = {}
 
 if "TUT2_MONGODB_ADMIN_USER" not in os.environ:
-    OKish("\n TUT2_MONGODB_ADMIN_USER environment variable NOT found. Setting up mongodb from scratch.")
-    secrets_section = {"mongodb_admin_user": "tut2adminuser",
-                       "mongodb_admin_password": makepassword()
-                       }
-else:
-    OKish("\n TUT2_MONGODB_ADMIN_USER environment variable found. Using these credentials.")
-    secrets_section = {"mongodb_admin_user": os.environ.get("TUT2_MONGODB_ADMIN_USER"),
-                       "mongodb_admin_password": os.environ.get("TUT2_MONGODB_ADMIN_PASSWORD")
-                       }
+    OKish("No.")
+    print("  TUT2_MONGODB_ADMIN_USER environment variable NOT found. Assuming that no authentication is required.")
+    announce("* Checking if mongodb auth mode is enabled...")
+    ret = os.system(f"grep -q -e'^auth = true' {MONGO_CONF_FILENAME}")
+    if ret:
+        OKish("NOT enabled (yet). Good. We can proceed.")
+    else:
+        OKish("Enabled.")
+        print("  Please disable mogodb authentication, and restart this script.")
+        print("  You could use the following commands:")
+        print("    sudo sed -i 's/^auth = true/#auth = true/g' %s" % MONGO_CONF_FILENAME)
+        print("    sudo service mongodb restart")
+        exit(3)
 
-announce(f"Creating config directory '{CONF_PATH}' (if it doesn't exist already)...")
+admin_user = os.environ.get("TUT2_MONGODB_ADMIN_USER")
+admin_password = os.environ.get("TUT2_MONGODB_ADMIN_PASSWORD")
+
+announce(f"* Creating config directory '{CONF_PATH}' (if it doesn't exist already)...")
 os.makedirs(CONF_PATH, exist_ok=True)
 OK()
-
-secrets = configparser.ConfigParser()
-secrets["secrets"] = secrets_section
-announce(f"Writing {SECRETS_FILENAME}...")
-with open(SECRETS_FILENAME, 'w') as configfile:
-    secrets.write(configfile)
-OK()
-
-if "TUT2_MONGODB_ADMIN_USER" not in os.environ:
-    set_up_mongodb()
 
 conf = configparser.ConfigParser()
 db_section = {"mongodb_host": os.environ.get("TUT2_MONGODB_HOST", "localhost"),
@@ -159,47 +140,73 @@ db_section = {"mongodb_host": os.environ.get("TUT2_MONGODB_HOST", "localhost"),
 
 conf["db"] = db_section
 
-announce("Generating a 'secret key' for flask session management...")
+announce("* Generating a 'secret key' for flask session management...")
 key_section = {"flask_secret_key": makepassword()}
 conf['keys'] = key_section
 OK()
 
 
-announce(f"Writing {TUT2CONF_FILENAME}...")
+if admin_user:
+    announce(f"* Connecting to database '{db_section['userdb_name']}' as user '{admin_user}'...")
+    client = MongoClient(host=db_section['mongodb_host'], port=db_section['mongodb_port'],
+                         username=secrets_section['mongodb_admin_user'],
+                         password=secrets_section['mongodb_admin_password'])
+else:
+    announce(f"* Connecting to database '{db_section['userdb_name']}'...")
+    client = MongoClient(host=db_section['mongodb_host'], port=db_section['mongodb_port'])
+
+client.server_info()
+db = client[db_section['userdb_name']]
+OK()
+
+announce(f"* Creating read/write user '{db_section['tut2rw_user_name']}' for writing to tut2 database...")
+try:
+    db.command("createUser", db_section['tut2rw_user_name'], pwd=db_section['tut2rw_user_password'],
+               roles=[{'role': 'readWrite', 'db': db_section['tut2db_name']}])
+except pymongo.errors.DuplicateKeyError:
+    OKish('already exists. I will try to drop() and recreate with new password.')
+    announce(f"  * Dropping user '{db_section['tut2rw_user_name']}'...")
+    db.command("dropUser", db_section['tut2rw_user_name'])
+    OK()
+
+    announce(f"  * Trying to create user '{db_section['tut2rw_user_name']}' again...")
+    db.command("createUser", db_section['tut2rw_user_name'], pwd=db_section['tut2rw_user_password'],
+               roles=[{'role': 'readWrite', 'db': db_section['tut2db_name']}])
+    OK()
+else:
+    OK()
+
+announce(f"* Creating read-only user '{db_section['tut2ro_user_name']}' for tut2 database...")
+pwd = makepassword()
+try:
+    db.command("createUser", db_section['tut2ro_user_name'], pwd=db_section['tut2ro_user_password'],
+               roles=[{'role': 'read', 'db': db_section['tut2db_name']}])
+except pymongo.errors.DuplicateKeyError:
+    OKish('already exists. I will try to drop() and recreate with new password.')
+    announce(f"  * Dropping user '{db_section['tut2ro_user_name']}'...")
+    db.command("dropUser", db_section['tut2ro_user_name'])
+    OK()
+
+    announce(f"  * Trying to create user '{db_section['tut2ro_user_name']}' again...")
+    db.command("createUser", db_section['tut2ro_user_name'], pwd=db_section['tut2ro_user_password'],
+               roles=[{'role': 'read', 'db': db_section['tut2db_name']}])
+    OK()
+else:
+    OK()
+
+
+announce(f"* Writing {TUT2CONF_FILENAME}...")
 with open(TUT2CONF_FILENAME, 'w') as configfile:
     conf.write(configfile)
 OK()
 
-OKish(f"Creating read/write user '{db_section['tut2rw_user_name']}' for administrating tut2 database...")
 
-announce(f"Connecting to database '{db_section['userdb_name']}'...")
-client = MongoClient(host=db_section['mongodb_host'], port=db_section['mongodb_port'],
-                     username=secrets_section['mongodb_admin_user'],
-                     password=secrets_section['mongodb_admin_password'])
-client.server_info()
-db = client[db_section['userdb_name']]
+if not admin_user:
+    print("")
+    print("If you disabled mongodb authentication earlier, you might want to re-enable it.")
+    print("  You could use the following commands:")
+    print("    sudo sed -i 's/^#auth = true/auth = true/g' %s" % MONGO_CONF_FILENAME)
+    print("    sudo service mongodb restart")
+    print("")
 
-try:
-    db.command("createUser", db_section['tut2rw_user_name'], pwd=db_section['tut2rw_user_password'],
-               roles=[{'role': 'readWrite', 'db': db_section['tut2db_name']}])
-except pymongo.errors.OperationFailure:
-    OKish('already exists. I will stop here.')
-    exit(0)
-else:
-    OK()
-
-announce("Creating read-only user for tut2 database...")
-pwd = makepassword()
-try:
-    db.command("createUser", db_section['tut2ro_user_name'], pwd=db_section['tut2ro_user_password'],
-               roles=[{'role':'read', 'db': db_section['tut2db_name']}])
-except pymongo.errors.DuplicateKeyError:
-    OKish('already exists. moving on.')
-else:
-    OK()
-
-
-
-#logger.debug("retrieving latest revision number...")
-#entry = db.tut2entries.find_one(sort=[("revision", -1)])
-
+print("Setup wizard done. Exiting.")
