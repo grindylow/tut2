@@ -2,11 +2,14 @@
 The data model(s)
 """
 
-from tut2app import tut2db
-import pymongo
 import logging
 import math  # floor (report generator)
-import re    # report generator relies on regular expressions
+import re  # report generator relies on regular expressions
+
+import pymongo
+
+from tut2app import tut2db
+
 logger = logging.getLogger(__name__)
 
 

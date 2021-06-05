@@ -114,8 +114,27 @@ body {
     background-color: white;
 }
 
-.tut_settings_menu {
-    float: right;
+.tut_menu {
+    position: absolute;
+    top: .5em;
+    right: .5em;
+}
+
+.tut_menu .choice {
+    border-radius: 0.4em;
+    x-background-color: #ddd;
+    padding: 0.2em;
+    margin-bottom: 0.1em;
+}
+
+.tut_menu .active {
+    background-color: #ddd;
+}
+
+.flashes {
+    background-color: yellow;
+    padding-top: .2em;
+    padding-bottom: .2em;
 }
 
 .tut_entry div input {

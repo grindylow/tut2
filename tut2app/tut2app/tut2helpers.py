@@ -1,9 +1,10 @@
 # a number of useful project-wide helper functions
 import configparser
-import string
-import random
-import os
 import logging
+import os
+import random
+import string
+
 logger = logging.getLogger(__name__)
 
 

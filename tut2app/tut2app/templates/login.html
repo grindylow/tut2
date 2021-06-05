@@ -1,21 +1,5 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="static/tut2_default.css" type="text/css">
-    <title>tut2 login page</title>
-  </head>
-  <body>
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <h1>Flashed messages</h1>
-    <ul class=flashes>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
+{% extends "basebaselayout.html" %}
+{% block content %}
     <h1>Login Form</h1>
     <form method="post">
       Email: <input type="text" name="email" />
@@ -25,5 +9,4 @@
   <hr>
   <p>Dont have an account? <!--suppress HtmlUnknownTarget -->
       <a href="..\signup">Create one!</a></p>
-  </body>
-</html>
+{% endblock %}

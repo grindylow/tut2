@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="static/tut2_default.css" type="text/css">
+    <link rel="icon" href="static/pic/favicon/favicon.ico" type="image/x-icon">
+{% block extra_head_lines %}
+{% endblock %}
+    <title>tut2
+        	{% if current_user.is_authenticated %}- {{ current_user.get_id() }}{% endif %}</title>
+  </head>
+  <body>
+  {% block menu %}
+  {% endblock %}
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flashes">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+	    {% endfor %}
+	</ul>
+      {% endif %}
+    {% endwith %}
+
+{% block content %}
+<p>Dummy content</p>
+{% endblock %}
+
+  </body>
+  <!-- icons: http://www.iconarchive.com/show/audio-video-outline-icons-by-danieledesantis/play-icon.html
+       icons: http://icons.iconarchive.com/icons/iconsmind/outline/64/Remove-icon.png (license: link back to iconsmind.com
+  -->
+</html>

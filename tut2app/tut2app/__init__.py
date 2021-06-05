@@ -1,8 +1,11 @@
+import logging
+
 from flask import Flask
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_login import LoginManager
+
 from tut2app.tut2helpers import get_flask_key
-import logging
+
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)

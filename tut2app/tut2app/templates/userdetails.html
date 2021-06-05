@@ -1,8 +1,9 @@
 {% extends "baselayout.html" %}
+{% set active_menu = "settings" %}
 {% block content %}
-    <h1>User Details</h1>
+    <h1>User Details and Settings</h1>
 {% if current_user.is_authenticated %}
-  Hi {{ current_user.fullname }}!<br />
+  Hi {{ current_user.get_id() }}!<br />
 {% endif %}
 
     current_user.is_authenticated: "{{ current_user.is_authenticated }}" <br />

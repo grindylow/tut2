@@ -6,12 +6,13 @@
 #
 
 import hashlib
-#import base64
+import logging
+# import base64
 import secrets
+
 import pymongo
 
 from tut2app import tut2db
-import logging
 
 logger = logging.getLogger(__name__)
 

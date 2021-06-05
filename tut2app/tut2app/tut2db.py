@@ -2,9 +2,12 @@
 Functions for accessing the (MongoDB) database.
 """
 
-from pymongo import MongoClient
-from . import tut2helpers
 import logging
+
+from pymongo import MongoClient
+
+from . import tut2helpers
+
 logger = logging.getLogger(__name__)
 
 _db = None

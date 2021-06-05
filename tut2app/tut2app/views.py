@@ -1,12 +1,14 @@
+import logging
+import re
+
+from email_validator import validate_email, EmailNotValidError
 from flask import render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
+
 from tut2app import app
 from tut2app import login_manager
 from tut2app.model import model
 from tut2app.model import users
-import logging
-import re
-from email_validator import validate_email, EmailNotValidError
 
 mymodel = model.Model()  # this might not be right - does it need to go into 'g'?
 login_manager.login_view = 'login'
@@ -14,7 +16,7 @@ login_manager.login_view = 'login'
 
 @app.route("/")
 def hello():
-    return render_template("home.html")
+    return render_template("hello.html")
 
 
 @login_manager.user_loader
@@ -61,7 +63,7 @@ def login():
             flash("Invalid credentials.")
         else:
             login_user(my_user)
-            flash("Logged in successfully.")
+            # flash("Logged in successfully.")
             return redirect(url_for("track"))
             # @future: could request.args.get("next") or , but make sure to VALIDATE next!
     return render_template("login.html")
@@ -70,7 +72,7 @@ def login():
 def logout():
     logout_user()
     flash('Logged out.')
-    return redirect(url_for("details"))
+    return redirect(url_for("hello"))
 
 
 @app.route("/details")
@@ -136,7 +138,7 @@ def report_table():
 @login_required
 def track():
     entries = []
-    return render_template("page2.html", entries=entries)
+    return render_template("track.html", entries=entries)
 
 
 @app.route("/api_queryentries")
