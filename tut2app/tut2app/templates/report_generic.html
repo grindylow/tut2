@@ -1,9 +1,13 @@
 {% extends "baselayout.html" %}
+
 {% set active_menu = "report" %}
+
 {% block extra_head_lines %}
 {{ super() }}
+<script src="static/reporting.js"></script>
 <script src="static/tut2view_colours.js"></script>
 {% endblock %}
+
 {% block content %}
     <h1>Report</h1>
     Select from one of the predefined report durations below, or choose your own.<br />
@@ -23,7 +27,7 @@
             </tr>
         </table>
     </form>
-    <input type="button" id="generate" value="Generate report!" name="generate" />
+    <input type="button" id="generate" value="(Re-)generate report!" name="generate" />
     <hr />
     <div id="report_table">...report goes here...</div>
 {% endblock %}

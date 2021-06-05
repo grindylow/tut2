@@ -89,10 +89,10 @@ div.tut_notyetvalid {
     background-color: #eee;
 }
 
-body p {
-    margin-bottom: 0.1em;
-    font-weight: bold;
-}
+//body p {
+//    margin-bottom: 0.1em;
+//    font-weight: bold;
+//}
 
 body {
     font-family: sans-serif;
@@ -167,6 +167,15 @@ div.tut_insertabove {
 }
 div.tut_insertabove:hover {
     opacity: 1.0;
+}
+
+span.debug_menu {
+    opacity: 0.0;
+    font-size: 80%;
+}
+
+span.debug_menu:hover {
+    opacity: .8;
 }
 
 div.tut_insertbelow {

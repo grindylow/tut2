@@ -53,18 +53,21 @@
 
         $("#this_week").on('click',null,null,function() {
             calc_times_for_week(new Date());
+            $("#generate").click()
         });
 
         $("#last_week").on('click',null,null,function() {
             var d=new Date();
             d.setDate(d.getDate()-7);
             calc_times_for_week(d);
+            $("#generate").click()
         });
 
         $("#last_last_week").on('click',null,null,function() {
             var d=new Date();
             d.setDate(d.getDate()-14);
             calc_times_for_week(d);
+            $("#generate").click()
         });
 
         $("#generate").on('click',null,null,function() {
@@ -83,7 +86,7 @@
                 //success: success
                 async: true,
                 success: function(data, textStatus, jqXHR) {
-                    console.info("retrieved via AJAX asynchronous:",data, "result:", textStatus);
+                    //console.info("retrieved via AJAX asynchronous:",data, "result:", textStatus);
                     $("#report_table").html(data);
                 },
                 complete: function(result, resultstr) {
@@ -113,5 +116,8 @@
 
         // Populate form fields sensible defaults
         calc_times_for_week(new Date());
+
+        // start generating the most useful report right away
+        $("#this_week").click()
     });
 })();
