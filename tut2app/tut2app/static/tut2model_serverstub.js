@@ -7,7 +7,7 @@
 
 // The TutModel maintains the list of all Log Entries, together with
 // the necessary housekeeping data to support syncing.
-function tut2_createServerModelStub(params)
+function tut2_createServerModelStub()
 {
     var o={};
 
@@ -54,9 +54,9 @@ function tut2_createServerModelStub(params)
     o.addOrUpdateEntry = function(entry) {
         // @todo convert to asynchronous
         // @todo change interface to allow adding multiple entries in one go
-	// @todo make it cope with multiple entries at once (server can handle it already I think, albeit without sophisticated error handling)
+	    // @todo make it cope with multiple entries at once (server can handle it already I think, albeit without sophisticated error handling)
         console.log("serverStub.addOrUpdateEntry()",entry.pickleToDict());
-	var newrev;
+        var newrev;
         // BAD: we use a synchronous ajax call (bad)
         // @todo convert to async
         var handle = $.ajax({
@@ -69,8 +69,8 @@ function tut2_createServerModelStub(params)
             //success: success
             async: false, //true,
             success: function(result) {
-                console.info("retrieved via AJAX:",result);
-		newrev = result['revnrs'][0]
+               console.info("retrieved via AJAX:",result);
+                newrev = result['revnrs'][0]
             }
         });
         console.assert(newrev !== undefined, 'Upstream revision number is undefined - most likely the update has failed.');
@@ -79,6 +79,6 @@ function tut2_createServerModelStub(params)
     };
 
     // o.that=o;   do we need this? what for? will it prevent GC (bad!)?
-
+    console.debug("ServerModelStub created");
     return o;
 };

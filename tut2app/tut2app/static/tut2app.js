@@ -9,17 +9,17 @@ var mymodel;
 
     $(document).ready(function(){
 
-        console.info("mark B-0");
+        console.debug("document.on_ready()");
         mymodel=tut2_createTutModel();
         myview=tut2_createDefaultView();
 
-        console.info("mark B-1");
+        console.debug("model and view created");
         if(localStorage) {
-            console.log("localStorage exists");
+            console.info("localStorage is available");
         }
 
         if(localStorage.tut_grill_entries) {
-            console.log("localStorage has a tut_grill_entries entry");
+            console.info("localStorage has a tut_grill_entries entry");
             //mymodel.populateFromLocalStorage();
             //@todo we now sync with localStorage and no longer read it directly.
         } else {
@@ -27,12 +27,12 @@ var mymodel;
             //mymodel.populateFromLocalStorage();
         }
 
-        console.info("mark B-2");
+        console.debug("mark B-2");
 
         // Delete all statically coded (demo-)entries
         // @future: there shouldn't be any in the final release template
-        var c=$('#tut-entries-container');
-        c.empty();
+        //var c=$('#tut-entries-container');
+        //c.empty();
 
         // (Debug)-Functionality
         // @future: these should disappear from the final GUI, as all

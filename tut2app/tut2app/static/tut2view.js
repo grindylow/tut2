@@ -734,7 +734,7 @@ function tut2_createDefaultView() {
         if(code===2) {
             // we delay the hiding a little, so the user actually gets to see the
             // syncing indicator
-            window.setTimeout(function() { indicator.hide(); },3000);
+            window.setTimeout(function() { indicator.hide(); },200);
         }
     };
 
