@@ -22,29 +22,38 @@ function tut2_createServerModelStub()
      * 
      *  updated version for async support: call a callback when the data is ready,
      *  don't return anything
+     *
+     *  Updated version with Promise support: return a Promise.
      */
     o.queryEntries = function(fromRev,callback) {
-        console.log("serverStub.queryEntries(fromRev=%s)",fromRev);
-        // was: we use a synchronous ajax call (bad)
-        var handle = $.ajax({
-            dataType: "json",
-            url: "api_queryentries",
-            cache:false,
-            data: {"fromrev":fromRev},
-            //success: success
-            //async: false
-            success: function(result) {
-                console.info("retrieved via AJAX asynchronous:",result);
-                var resultSet=[];
-                result.entries.forEach(function(e) {
-                    resultSet.push(tut2_createTutEntry(undefined /*model*/,e));
-                });
-                console.info("actual entries:",resultSet);
-                callback(resultSet);  // this is the "asynchronous return"
-            }
+        return new Promise(function(resolve, reject) {
+            console.log("serverStub.queryEntries(fromRev=%s)",fromRev);
+            // was: we use a synchronous ajax call (bad)
+            var handle = $.ajax({
+                dataType: "json",
+                url: "api_queryentries",
+                cache:false,
+                data: {"fromrev":fromRev},
+                //success: success
+                //async: false
+                success: function(result) {
+                    console.info("retrieved via AJAX asynchronous:",result);
+                    var resultSet=[];
+                    result.entries.forEach(function(e) {
+                        resultSet.push(tut2_createTutEntry(undefined /*model*/,e));
+                    });
+                    console.info("actual entries:",resultSet);
+                    resolve(resultSet);
+                    //callback(resultSet);  // this is the "asynchronous return"
+                },
+                error: function(a,b,c) {
+                    console.warn("AJAX call resulted in 'error' with",a,b,c);
+                    reject(b);
+                }
+            });
+            console.info("serverStub.queryEntries() terminated, closure might still be active");
         });
-        console.info("serverStub.queryEntries() terminated, closure might still be active");
-    };
+    }
 
     /** Add the given entry e (a tut2_tutEntry) to the server database, or
      *  update the information in the server-side entry if it already exists.
