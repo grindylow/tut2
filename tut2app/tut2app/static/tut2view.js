@@ -39,6 +39,7 @@ function tut2_createDefaultView() {
     var v={};
     var self=v;  // Javascript this refers to DOM object inside callbacks
     var ENTER_KEY=13;
+    var indicator_start_time;
 
     /**** private functions ****/
 
@@ -729,12 +730,21 @@ function tut2_createDefaultView() {
         var indicator=$("#syncindicator");
         if(code===1) {
             indicator.show();
+            indicator_start_time = new Date();
             // might also need to give the html engine time to actually render...
         }
         if(code===2) {
             // we delay the hiding a little, so the user actually gets to see the
             // syncing indicator
-            window.setTimeout(function() { indicator.hide(); },200);
+            var endtime=new Date();
+            var timeDiff=endtime-indicator_start_time;
+            var delay=0;  // assume we are already taking long enough, don't add any extra delay
+            if(timeDiff<500)
+            {
+                delay = 500-timeDiff;  // ensure at least 500 ms delay between show() and hide()
+            }
+            console.info(timeDiff, delay)
+            window.setTimeout(function() { indicator.hide(); }, delay);
         }
     };
 
