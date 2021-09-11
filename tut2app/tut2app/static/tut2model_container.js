@@ -15,6 +15,7 @@ function tut2_createTutModel(params)
     var datastore=[];
     var _globalRevNo=200;  // just so not everything starts with 1!
     var _syncProgressListeners=[];
+    var _myOnModelUpdatedCallback=undefined;
 
     // Stores revision numbers for all entries for all upstream repositories
     // also remembers what revision numbers were current when we last synced.
@@ -25,7 +26,7 @@ function tut2_createTutModel(params)
     //      array.
     //
     // Any remote (upstream) revisions > latestRevWeHaveFromThem are updated
-    // entries at the upstream end and need to be integrated into our "working 
+    // entries at the upstream end and need to be integrated into our "working
     // copy".
     var syncState={};
 
@@ -47,9 +48,30 @@ function tut2_createTutModel(params)
         });
     };
 
+    /** Let interested parties know that some aspect of the model has just
+     * changed - giving them the chance to react to such a change in a timely
+     * manner, e.g. by syncing them to an upstream repository. */
+    var notifyListenersOfModelChanges=function() {
+        if(_myOnModelUpdatedCallback) {
+            // schedule an immediate call to the callback
+            setTimeout(_myOnModelUpdatedCallback, 0);
+        }
+    }
+
+
     /* public member functions */
 
-    /* This is a special entry that only ever exists in the view. 
+    /** Register a callback that will get called whenever modifications to
+     * the model have been made.
+     * Useful for automatically syncing changes in a timely manner.
+     * Currently, only one such callback is supported.
+     */
+    o.registerOnModelUpdatedCallback=function(cb) {
+        _myOnModelUpdatedCallback=cb;
+    }
+
+
+    /* This is a special entry that only ever exists in the view.
        The user enters a new task into that entry (which will turn the
        entry into a "regular" log entry).
        @todo Move this to view?
@@ -57,7 +79,7 @@ function tut2_createTutModel(params)
     o.createTemplateEntry=function() {
         return tut2_createTutEntry( o, { "uid":"entrytemplate",
                                          "starttime_utc_ms":Date.now(),   // was: now,
-                                         "project":"enter project", 
+                                         "project":"enter project",
                                          "logentry":"enter log entry (task description)"
                                         } );
     };
@@ -66,7 +88,7 @@ function tut2_createTutModel(params)
         _globalRevNo=n;
     };
 
-    
+
     /** Add a listener for sync events.
      *  Signature of the callback: f(code,upstreamName)
      *    code=1: sync started
@@ -96,10 +118,11 @@ function tut2_createTutModel(params)
         return _globalRevNo;
     }
 
-    o.addEntry=function(entry) { 
+    o.addEntry=function(entry) {
         // for now, we always add the new entry to the beginning
         // of the list, assuming it is the most recent one.
         datastore=[entry].concat(datastore);
+        notifyListenersOfModelChanges();
         //saveToLocalStorage();
     };
 
@@ -108,11 +131,12 @@ function tut2_createTutModel(params)
      *  This marker will get propagated during syncing just like any other
      *  attribute.
      */
-    o.deleteEntry=function(uid) { 
+    o.deleteEntry=function(uid) {
         for(var i=0;i<datastore.length;i++) {
             if(datastore[i].getUID()==uid) {
                 console.log("found culprit for deleteEntry");
                 datastore[i].markAsDeleted();
+                notifyListenersOfModelChanges();
                 return;
             }
         }
@@ -126,6 +150,7 @@ function tut2_createTutModel(params)
             if(datastore[i].getUID() == entry.getUID()) {
                 console.log("found culprit for updateentry");
                 datastore[i] = entry;
+                notifyListenersOfModelChanges();
                 found = true;
                 break;
             }
@@ -136,7 +161,7 @@ function tut2_createTutModel(params)
         //saveToLocalStorage();
     };
 
-    // append a new entry (if the entry doesn't exist already) 
+    // append a new entry (if the entry doesn't exist already)
     // or update an existing entry (if we have a copy of that entry already).
     // Either way we will create a clone of the passed-in entry so that
     // we have our own copy.
@@ -148,12 +173,13 @@ function tut2_createTutModel(params)
             if(datastore[i].getUID()==entry.getUID()) {
                 console.log("found culprit for addOrUpdateEntry");
                 datastore[i]=e;
+                notifyListenersOfModelChanges();
                 found=true;
                 break;
             }
         }
         if(!found) {
-            o.addEntry(e);
+            o.addEntry(e);  // will notifyListenersOfModelChanges() implicitly
         }
         return e.getRevision();
     };
@@ -177,7 +203,7 @@ function tut2_createTutModel(params)
         return datastore;
     };
 
-    // The following two are only in here, because this object doubles up as a 
+    // The following two are only in here, because this object doubles up as a
     // representative for the localStorage "upstream" repo.
     // Our regular model should only ever sync to upstream, never store to local
     // storage directly.
@@ -347,7 +373,7 @@ function tut2_createTutModel(params)
     };
 
     // Sync with the given upstream "repository", following the algorithm described
-    // in SYNC_DESCRIPTION. Sync state information is maintained in our (private) 
+    // in SYNC_DESCRIPTION. Sync state information is maintained in our (private)
     // syncState variable, for each upstream repository.
     //  @param upstreamName    A string that uniquely identifies this particular
     //                         upstream repository. Used internally as an index
@@ -356,7 +382,7 @@ function tut2_createTutModel(params)
     //                         all methods required for syncing, and forward the information
     //                         on to the underlying repository as required.
     //                         Currently, two distinct such implementations exist:
-    //                          - a model that populates itself from localStorage (and 
+    //                          - a model that populates itself from localStorage (and
     //                            can store itself back to localStorage), used for syncing
     //                            between browser windows/tabs and for "offline" functionality.
     //                          - a model that talks to the server database, used for
