@@ -48,16 +48,6 @@ function tut2_createTutModel(params)
         });
     };
 
-    /** Let interested parties know that some aspect of the model has just
-     * changed - giving them the chance to react to such a change in a timely
-     * manner, e.g. by syncing them to an upstream repository. */
-    var notifyListenersOfModelChanges=function() {
-        if(_myOnModelUpdatedCallback) {
-            // schedule an immediate call to the callback
-            setTimeout(_myOnModelUpdatedCallback, 0);
-        }
-    }
-
 
     /* public member functions */
 
@@ -70,6 +60,18 @@ function tut2_createTutModel(params)
         _myOnModelUpdatedCallback=cb;
     }
 
+    /** Let interested parties know that some aspect of the model has just
+     * changed - giving them the chance to react to such a change in a timely
+     * manner, e.g. by syncing them to an upstream repository.
+     *
+     * Public, because it also needs to be called by tut2model_tutentries.
+     */
+    o.notifyListenersOfModelChanges=function() {
+        if(_myOnModelUpdatedCallback) {
+            // schedule an immediate call to the callback
+            setTimeout(_myOnModelUpdatedCallback, 0);
+        }
+    }
 
     /* This is a special entry that only ever exists in the view.
        The user enters a new task into that entry (which will turn the
@@ -122,7 +124,7 @@ function tut2_createTutModel(params)
         // for now, we always add the new entry to the beginning
         // of the list, assuming it is the most recent one.
         datastore=[entry].concat(datastore);
-        notifyListenersOfModelChanges();
+        o.notifyListenersOfModelChanges();
         //saveToLocalStorage();
     };
 
@@ -136,7 +138,7 @@ function tut2_createTutModel(params)
             if(datastore[i].getUID()==uid) {
                 console.log("found culprit for deleteEntry");
                 datastore[i].markAsDeleted();
-                notifyListenersOfModelChanges();
+                o.notifyListenersOfModelChanges();
                 return;
             }
         }
@@ -150,7 +152,7 @@ function tut2_createTutModel(params)
             if(datastore[i].getUID() == entry.getUID()) {
                 console.log("found culprit for updateentry");
                 datastore[i] = entry;
-                notifyListenersOfModelChanges();
+                o.notifyListenersOfModelChanges();
                 found = true;
                 break;
             }
@@ -173,7 +175,7 @@ function tut2_createTutModel(params)
             if(datastore[i].getUID()==entry.getUID()) {
                 console.log("found culprit for addOrUpdateEntry");
                 datastore[i]=e;
-                notifyListenersOfModelChanges();
+                o.notifyListenersOfModelChanges();
                 found=true;
                 break;
             }
