@@ -233,26 +233,23 @@ function tut2_createTutModel(params)
 
     // algorithm (A)
     // part 1: update local "working copy"
-    var sync_algA_pt1__update_local_working_copy = function(upstreamName,upstreamStub)
-    {
+    var sync_algA_pt1__update_local_working_copy = async function(upstreamName,upstreamStub) {
         console.info('SYNC ALG A PART 1');
         console.debug('syncState', JSON.stringify(syncState));
         console.debug('syncState', syncState);
-        upstreamStub.queryEntries(syncState[upstreamName].latestRevWeHaveFromThem + 1).then(
-                   // @todo limit this query by (entry) timestamp
-            // success
-            function(newEntries) {
-                sync_algA_pt1a__integrate_new_entries(upstreamName, newEntries);
-                console.info('SYNC ALG A PART 1 DONE');
+        var newEntries = await upstreamStub.queryEntries(syncState[upstreamName].latestRevWeHaveFromThem + 1)   // @todo limit this query by (entry) timestamp
 
-                // trigger next part of the syncing algorithm
-                sync_algA_pt2(upstreamName, upstreamStub);
-            },
-            // failed
-            function(e) {
-                // failed
-                console.warn('SYNC ALG A PART 1 FAILED AT SOME STAGE', e);
-            });
+        // success
+        await sync_algA_pt1a__integrate_new_entries(upstreamName, newEntries);
+        console.info('SYNC ALG A PART 1 DONE');
+
+        // trigger next part of the syncing algorithm - now done in caller
+                //sync_algA_pt2(upstreamName, upstreamStub);
+
+            //e => {
+            //   // failed
+            //    console.warn('SYNC ALG A PART 1 FAILED AT SOME STAGE', e);
+            //}
     };
 
     // algorithm (A)
@@ -313,19 +310,20 @@ function tut2_createTutModel(params)
     //     one has been done. terminates when stack is empty. might process in batches
     //     (instead of single items).
     //  ## CONTINUE HERE ##
-    var sync_algA_pt2 = function(upstreamName,upstreamStub)
+    var sync_algA_pt2 = async function(upstreamName,upstreamStub)
     {
         console.info('SYNC ALG A PART 2');
         console.log('syncState', JSON.stringify(syncState));
         console.log('syncState', syncState);
         var newLatestRevAfterLastSync = syncState[upstreamName].ourLatestRevAfterLastSync;
-        o.getAllEntries().forEach(function(e) {
+        //o.getAllEntries().forEach(async function(e) {
+        for(const e of o.getAllEntries()) {
             console.log('local revision:', e.getRevision(),
             'latest sync happend at local rev', syncState[upstreamName].ourLatestSyncedRevisions[e.getUID()],
             'our latest rev after last sync:', syncState[upstreamName].ourLatestRevAfterLastSync);
             if(o.hasUnsyncedModifications(e, upstreamName)) {
                 // add this entry to upstream
-                let rev = upstreamStub.addOrUpdateEntry(e);
+                let rev = await upstreamStub.addOrUpdateEntry(e);
                 console.log('...was added to upstream with revision number %s.', rev);
                 if(rev) {
                     syncState[upstreamName].latestUpstreamRevisionsWeHaveFromThem[e.getUID()] = rev;
@@ -343,9 +341,8 @@ function tut2_createTutModel(params)
                 newLatestRevAfterLastSync = e.getRevision();
                 console.debug('New latest rev after last sync: %s', newLatestRevAfterLastSync);
             }
-        });
+        }
         syncState[upstreamName].ourLatestRevAfterLastSync = newLatestRevAfterLastSync;
-        notifyListenersOfSyncProgress(2, upstreamName); // 2=sync completed successfully
         console.log('sync state:', syncState);
     };
 
@@ -367,19 +364,32 @@ function tut2_createTutModel(params)
 
     // See what changes need to be made to myself so as to bring
     // me in sync with whatever is stored in local storage.
-    o.syncWithUpstream=function(upstreamName,upstreamStub) {
+    o.syncWithUpstream = async function(upstreamName,upstreamStub) {
         // We try to implement the "alternative sync" method as described in
         // SYNC_DESCRIPTION.
 
         notifyListenersOfSyncProgress(1,upstreamName); // 1=sync started
         o.initialiseSyncStateIfEmpty(upstreamName);
 
-        sync_algA_pt1__update_local_working_copy(upstreamName,upstreamStub);
-          // will start of the syncing, and call subsequent parts automatically as required
-          // actual syncing *may* happen in the background (e.g. waiting for AJAX communications etc),
-          // so this function *might* return quite quickly, which doesn't necessary mean that
-          // the syncing has completed.
-          // note: syncing with "localStorage" always happens synchronously.
+        try {
+            await sync_algA_pt1__update_local_working_copy(upstreamName,upstreamStub);
+              // will start of the syncing, and call subsequent parts automatically as required
+              // actual syncing *may* happen in the background (e.g. waiting for AJAX communications etc),
+              // so this function *might* return quite quickly, which doesn't necessary mean that
+              // the syncing has completed.
+              // note: syncing with "localStorage" always happens synchronously.
+
+            // @todo ADD AN ARTIFICIAL DELAY HERE SO WE CAN TEST
+            // DISABLING THE SERVER IN THE MEANTIME
+            // [...]
+
+            await sync_algA_pt2(upstreamName, upstreamStub);
+        } catch (error)
+        {
+            alert("Caught an error: " + error);
+        }
+
+        notifyListenersOfSyncProgress(2, upstreamName); // 2=sync completed successfully
     };
 
     o.fillModelWithSomeExampleData=function() {

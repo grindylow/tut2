@@ -46,9 +46,11 @@ function tut2_createServerModelStub()
                     resolve(resultSet);
                     //callback(resultSet);  // this is the "asynchronous return"
                 },
-                error: function(a,b,c) {
-                    console.warn("AJAX call resulted in 'error' with",a,b,c);
-                    reject(b);
+                error: function(a,b) {
+                    console.warn("AJAX call resulted in 'error' with");
+                    console.warn(a);
+                    console.warn(b);
+                    reject(new Error('api_queryentries error'));
                 }
             });
             console.info("serverStub.queryEntries() terminated, closure might still be active");
@@ -61,30 +63,34 @@ function tut2_createServerModelStub()
      *  @returns (Server-side) revision number of the new entry
      */
     o.addOrUpdateEntry = function(entry) {
-        // @todo convert to asynchronous
-        // @todo change interface to allow adding multiple entries in one go
-	    // @todo make it cope with multiple entries at once (server can handle it already I think, albeit without sophisticated error handling)
-        console.log("serverStub.addOrUpdateEntry()",entry.pickleToDict());
-        var newrev;
-        // BAD: we use a synchronous ajax call (bad)
-        // @todo convert to async
-        var handle = $.ajax({
-            dataType: "json",
-            url: "api_addorupdateentry",
-            contentType: "application/json",
-            cache:false,
-            method: "post",
-            data: JSON.stringify({entries:[entry.pickleToDict()]}),
-            //success: success
-            async: false, //true,
-            success: function(result) {
-               console.info("retrieved via AJAX:",result);
-                newrev = result['revnrs'][0]
-            }
+        return new Promise(function(resolve, reject) {
+            // @todo change interface to allow adding multiple entries in one go
+            // @todo make it cope with multiple entries at once (server can handle it already I think, albeit without sophisticated error handling)
+            console.log("serverStub.addOrUpdateEntry()",entry.pickleToDict());
+            var newrev;
+            var handle = $.ajax({
+                dataType: "json",
+                url: "api_addorupdateentry",
+                contentType: "application/json",
+                cache:false,
+                method: "post",
+                data: JSON.stringify({entries:[entry.pickleToDict()]}),
+                //success: success
+                async: true,
+                success: function(result) {
+                    console.info("retrieved via AJAX:",result);
+                    newrev = result['revnrs'][0]
+                    console.assert(newrev !== undefined, 'Upstream revision number is undefined - most likely the update has failed.');
+                    resolve(newrev);
+                },
+                error: function(a,b) {
+                    console.warn("AJAX call resulted in 'error' with");
+                    console.warn(a);
+                    console.warn(b);
+                    reject(new Error('api_addorupdateentry error'));
+                }
+            });
         });
-        console.assert(newrev !== undefined, 'Upstream revision number is undefined - most likely the update has failed.');
-        console.info("serverStub.addOrUpdateEntry() terminated");
-        return newrev;
     };
 
     // o.that=o;   do we need this? what for? will it prevent GC (bad!)?
