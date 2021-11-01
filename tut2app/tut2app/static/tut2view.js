@@ -743,7 +743,7 @@ function tut2_createDefaultView() {
             {
                 delay = 500-timeDiff;  // ensure at least 500 ms delay between show() and hide()
             }
-            console.info(timeDiff, delay)
+            //console.info(timeDiff, delay)
             window.setTimeout(function() { indicator.hide(); }, delay);
         }
     };

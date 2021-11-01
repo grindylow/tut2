@@ -13,6 +13,9 @@ var mymodel;
         mymodel=tut2_createTutModel();
         myview=tut2_createDefaultView();
 
+        // This is where we store the timeout handle of a scheduled update action
+        var delayed_gui_update_handle;
+
         console.debug("model and view created");
         if(localStorage) {
             console.info("localStorage is available");
@@ -77,6 +80,41 @@ var mymodel;
             myview.redrawTutEntriesUI([mymodel.createTemplateEntry()].concat(mymodel.getAllEntries()));
         },10000000);
 
+        //await tut2app_syncWithServer()
+        //myview.redrawTutEntriesUI(...)
+
+        // Ask model to tell us whenever it was updated, so that we can trigger
+        // a sync with the server.
+        // Maybe we should ask the view instead of the model? Since we're really
+        // concerned with syncing with the server whenever the user modifies
+        // data.
+        var syncWithServer = async function() {
+            var upstreamStub=tut2_createServerModelStub();
+            await mymodel.syncWithUpstream('server',upstreamStub);
+        }
+
+        var syncWithServerAfterSettlingTime = function() {
+            console.log("syncWithServerAfterSettlingTime()");
+            if(delayed_gui_update_handle) {
+                clearTimeout(delayed_gui_update_handle);
+                console.log(" - extending existing delay");
+            }
+            delayed_gui_update_handle = setTimeout(syncWithServer, 3000);
+        }
+
+        mymodel.registerOnModelUpdatedCallback(syncWithServerAfterSettlingTime);
+        //myview.registerUpdatedCallback(syncWithServerAfterSettlingTime);
+
+        // Immediately (attempt to) sync with server for the first time,
+        // and update GUI right afterwards.
+        setTimeout(async function(){
+            await syncWithServer();
+
+            // 2. update GUI
+            myview.redrawTutEntriesUI(
+                [mymodel.createTemplateEntry()]
+                .concat(mymodel.getAllEntries()));
+        }, 0);
     });
 
 

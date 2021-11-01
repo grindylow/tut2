@@ -133,6 +133,7 @@ function tut2_createTutEntry(model,params) {
         console.log("finalise_drag_adjustment()", this._tentativeStarttimeMs);
         _starttime_utc_ms=this._tentativeStarttimeMs;
         _revision=_model.getNewRevNo();  // Indicate "modified" state
+        _model.notifyListenersOfModelChanges();
     }
 
 
