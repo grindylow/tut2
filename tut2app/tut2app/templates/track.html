@@ -1,5 +1,15 @@
 {% extends "baselayout.html" %}
 {% set active_menu = "track" %}
+
+{% block extra_head_lines %}
+{{ super() }}
+<script src="static/tut2model_tutentry.js"></script>
+<script src="static/tut2model_container.js"></script>
+<script src="static/tut2model_serverstub.js"></script>
+<script src="static/tut2view.js"></script>
+<script src="static/tut2app.js"></script>
+{% endblock %}
+
 {% block content %}
 
     <div id="tut-entry-template" class="tut_entry">

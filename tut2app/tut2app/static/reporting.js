@@ -42,8 +42,7 @@
         origin.setMilliseconds(0);
         $("#starttime").val(origin.getTime());
 
-        origin.setDate(origin.getDate()+7);
-        $("#endtime").val(origin.getTime());
+        $("#endtime").val(origin.getTime() + 7*24*60*60*1000);
 
         $("#interval").val(24*60*60*1000);
     }
