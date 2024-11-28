@@ -43,7 +43,7 @@ def OKish(s):
 
 
 def announce(s):
-    sys.stdout.write(s+' ')
+    print(s+' ', flush=True, end='')
 
 
 def set_up_mongodb_from_scratch():
@@ -111,17 +111,21 @@ admin_password = os.environ.get("TUT2_MONGODB_ADMIN_PASSWORD")
 if not admin_user:
     OKish("No.")
     print("  TUT2_MONGODB_ADMIN_USER environment variable NOT found. Assuming that no authentication is required.")
-    announce("* Checking if mongodb auth mode is enabled...")
-    ret = os.system(f"grep -q -e'^auth = true' {MONGO_CONF_FILENAME}")
-    if ret:
-        OKish("  (Probably) NOT enabled (yet). Good. We can proceed.")
+    announce("* Checking if we have a mongo .conf file...")
+    if not os.path.exists(MONGO_CONF_FILENAME):
+        OKish("No - let's assume that mongo is running inside a container.")
     else:
-        OKish("Enabled.")
-        print("  Please disable mogodb authentication, and restart this script.")
-        print("  You could use the following commands:")
-        print("    sudo sed -i 's/^auth = true/#auth = true/g' %s" % MONGO_CONF_FILENAME)
-        print("    sudo service mongodb restart")
-        exit(3)
+        announce("* Checking if mongodb auth mode is enabled...")
+        ret = os.system(f"grep -q -e'^auth = true' {MONGO_CONF_FILENAME}")
+        if ret:
+            OKish("  (Probably) NOT enabled (yet). Good. We can proceed.")
+        else:
+            OKish("Enabled.")
+            print("  Please disable mogodb authentication, and restart this script.")
+            print("  You could use the following commands:")
+            print("    sudo sed -i 's/^auth = true/#auth = true/g' %s" % MONGO_CONF_FILENAME)
+            print("    sudo service mongodb restart")
+            exit(3)
 else:
     OKish("Yes. Will use.")
 
@@ -161,40 +165,52 @@ client.server_info()
 db = client[db_section['userdb_name']]
 OK()
 
-announce(f"* Creating read/write user '{db_section['tut2rw_user_name']}' for writing to tut2 database...")
-try:
-    db.command("createUser", db_section['tut2rw_user_name'], pwd=db_section['tut2rw_user_password'],
-               roles=[{'role': 'readWrite', 'db': db_section['tut2db_name']}])
-except pymongo.errors.DuplicateKeyError:
-    OKish('already exists. I will try to drop() and recreate with new password.')
-    announce(f"  * Dropping user '{db_section['tut2rw_user_name']}'...")
-    db.command("dropUser", db_section['tut2rw_user_name'])
-    OK()
+for attempt in [1,2]:
+    announce(f"* Creating read/write user '{db_section['tut2rw_user_name']}' for writing to tut2 database (attempt {attempt})...")
+    try:
+        db.command("createUser", db_section['tut2rw_user_name'], pwd=db_section['tut2rw_user_password'],
+                roles=[{'role': 'readWrite', 'db': db_section['tut2db_name']}])
+        OK()
+        break
 
-    announce(f"  * Trying to create user '{db_section['tut2rw_user_name']}' again...")
-    db.command("createUser", db_section['tut2rw_user_name'], pwd=db_section['tut2rw_user_password'],
-               roles=[{'role': 'readWrite', 'db': db_section['tut2db_name']}])
-    OK()
-else:
-    OK()
+    except pymongo.errors.OperationFailure as e:
+        if e.code == 51003:  # already exists
+            OKish('already exists. I will try to drop() and recreate with new password.')
+            announce(f"  * Dropping user '{db_section['tut2rw_user_name']}'...")
+            db.command("dropUser", db_section['tut2rw_user_name'])
+            OK()
+        elif e.code == 13:
+            NOK()
+            print("Requires authentication - specify admin user in TUT2_MONGODB_ADMIN_USER/TUT2_MONGODB_ADMIN_PASSWORD and re-run.")
+            print(e)
+            sys.exit(1)
+        else:
+            print(e)
+            sys.exit(2)
 
-announce(f"* Creating read-only user '{db_section['tut2ro_user_name']}' for tut2 database...")
-pwd = makepassword()
-try:
-    db.command("createUser", db_section['tut2ro_user_name'], pwd=db_section['tut2ro_user_password'],
-               roles=[{'role': 'read', 'db': db_section['tut2db_name']}])
-except pymongo.errors.DuplicateKeyError:
-    OKish('already exists. I will try to drop() and recreate with new password.')
-    announce(f"  * Dropping user '{db_section['tut2ro_user_name']}'...")
-    db.command("dropUser", db_section['tut2ro_user_name'])
-    OK()
+for attempt in [1,2]:
+    announce(f"* Creating read-only user '{db_section['tut2ro_user_name']}' for tut2 database (attempt {attempt})...")
+    pwd = makepassword()
+    try:
+        db.command("createUser", db_section['tut2ro_user_name'], pwd=db_section['tut2ro_user_password'],
+                roles=[{'role': 'read', 'db': db_section['tut2db_name']}])
+        OK()
+        break
 
-    announce(f"  * Trying to create user '{db_section['tut2ro_user_name']}' again...")
-    db.command("createUser", db_section['tut2ro_user_name'], pwd=db_section['tut2ro_user_password'],
-               roles=[{'role': 'read', 'db': db_section['tut2db_name']}])
-    OK()
-else:
-    OK()
+    except pymongo.errors.OperationFailure as e:
+        if e.code == 51003:  # already exists
+            OKish('already exists. I will try to drop() and recreate with new password.')
+            announce(f"  * Dropping user '{db_section['tut2ro_user_name']}'...")
+            db.command("dropUser", db_section['tut2ro_user_name'])
+            OK()
+        elif e.code == 13:
+            NOK()
+            print("Requires authentication - specify admin user in TUT2_MONGODB_ADMIN_USER/TUT2_MONGODB_ADMIN_PASSWORD and re-run.")
+            print(e)
+            sys.exit(3)
+        else:
+            print(e)
+            sys.exit(4)
 
 
 announce(f"* Writing {TUT2CONF_FILENAME}...")
