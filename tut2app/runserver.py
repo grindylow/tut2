@@ -11,6 +11,7 @@ import logging
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger("pymongo").setLevel(logging.INFO)
     logging.info("Starting...")
 
     from tut2app import app

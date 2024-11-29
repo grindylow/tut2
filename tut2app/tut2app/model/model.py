@@ -106,7 +106,7 @@ class Model:
                 revno = self.retrieve_next_rev_no(db)
                 e['revision'] = revno
                 try:
-                    result = db.tut2entries.update({'_id': id}, {"$set": e}, upsert=False)
+                    result = db.tut2entries.update_one({'_id': id}, {"$set": e}, upsert=False)
                     break
                 except pymongo.errors.DuplicateKeyError:
                     logger.warning('duplicate key error on update() - trying again...')

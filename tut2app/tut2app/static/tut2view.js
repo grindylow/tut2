@@ -75,8 +75,10 @@ function tut2_createDefaultView() {
         var fullprojstr = entry.getProject();
         var m = regex.exec(fullprojstr);
         console.log("regex result", m);
-        var proj = m.groups.project;
-
+        var proj = ""
+        if (m !== null) {
+            proj = m.groups.project;
+        }
         const nullproj_regex = /(^0$)/gm;
 
         var h = proj.hashCode();
@@ -367,6 +369,8 @@ function tut2_createDefaultView() {
             console.log("turning template into proper entry");
             var now = Date.now();
             var entry=tut2_createTutEntry( mymodel, {"starttime_utc_ms":now} );
+            entry.setProject("");
+            entry.setLogentry("");
             uid=entry.getUID();
             mymodel.addEntry(entry);
             entryroot.attr("id",encodeID(uid));
