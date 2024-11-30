@@ -2,10 +2,11 @@ FROM python:3
 WORKDIR /app
 COPY . .
 
-#RUN apt update
+RUN apt update
+RUN apt install -y pipx
 #RUN apt install python3 python3-pip -y
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pipx install poetry
 RUN pip install --no-cache-dir gunicorn
 
 ENV TUT2_MONGODB_HOST=mongo
