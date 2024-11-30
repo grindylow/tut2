@@ -453,6 +453,8 @@ function tut2_createDefaultView() {
         var containers=$(root).find('.tut_container');
         var viewboxes=$(root).find('.tut_viewbox');
         var editboxes=$(root).find('.tut_editbox');
+        var editboxes_proj=$(root).find('.tut_proj_edit');
+        var editboxes_logentry=$(root).find('.tut_logentry_edit');
         var resumebuttonlinks=$(root).find('.tut_resume a');
         var removebuttonlinks=$(root).find('.tut_remove a');
         var insertentryabovelinks=$(root).find('.tut_insertabove a');
@@ -467,33 +469,38 @@ function tut2_createDefaultView() {
         insertentrybelowlinks.on('click',null,null,insertEntryBelowClicked);
 
         // issue 4: autosuggest (using jqueryui: https://jqueryui.com/autocomplete/#default)
-        var availableTags = [
-            "ActionScript",
-            "AppleScript",
-            "Asp",
-            "BASIC",
-            "C",
-            "C++",
-            "Clojure",
-            "COBOL",
-            "ColdFusion",
-            "Erlang",
-            "Fortran",
-            "Groovy",
-            "Haskell",
-            "Java",
-            "JavaScript",
-            "Lisp",
-            "Perl",
-            "PHP",
-            "Python",
-            "Ruby",
-            "Scala",
-            "Scheme"
-          ];
-          editboxes.autocomplete({
-            source: availableTags
-          });
+        // We pass the type of the edit box in as an "extended attribute" (x_type).
+        // This is how we can decide whether we should suggest completions from project names
+        // or from log entries.
+        let suggest_function = function (request, response) {
+            console.log("autocompleting...", this, $(this));
+            console.log(this.options.x_type);
+            let gettext = function(entry) { return entry.getProject(); };
+            if (this.options.x_type === "logentry") {
+                gettext = function(entry) { return entry.getLogentry(); };
+            }
+            var entries = mymodel.getAllEntries();
+            const needle = request.term.toLowerCase();
+            const result = new Set();
+            for (const entry of entries) {
+                var p = gettext(entry);
+                if (p.toLowerCase().includes(needle)) {
+                    result.add(p);
+                }
+                if (result.size >= 10) {
+                    break;
+                }
+            }
+            response(Array.from(result));
+        }
+        editboxes_proj.autocomplete({
+            x_type: "proj",
+            source: suggest_function
+        });
+        editboxes_logentry.autocomplete({
+            x_type: "logentry",
+            source: suggest_function
+        });
 
         // drag time trials:
         // references: http://luke.breuer.com/tutorial/javascript-drag-and-drop-tutorial.aspx
