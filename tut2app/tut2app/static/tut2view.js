@@ -466,6 +466,35 @@ function tut2_createDefaultView() {
         insertentryabovelinks.on('click',null,null,insertEntryAboveClicked);
         insertentrybelowlinks.on('click',null,null,insertEntryBelowClicked);
 
+        // issue 4: autosuggest (using jqueryui: https://jqueryui.com/autocomplete/#default)
+        var availableTags = [
+            "ActionScript",
+            "AppleScript",
+            "Asp",
+            "BASIC",
+            "C",
+            "C++",
+            "Clojure",
+            "COBOL",
+            "ColdFusion",
+            "Erlang",
+            "Fortran",
+            "Groovy",
+            "Haskell",
+            "Java",
+            "JavaScript",
+            "Lisp",
+            "Perl",
+            "PHP",
+            "Python",
+            "Ruby",
+            "Scala",
+            "Scheme"
+          ];
+          editboxes.autocomplete({
+            source: availableTags
+          });
+
         // drag time trials:
         // references: http://luke.breuer.com/tutorial/javascript-drag-and-drop-tutorial.aspx
 
