@@ -16,6 +16,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Extract version from pyproject.toml
+        id: get_version
+        run: |
+          VERSION=$(grep -Po '(?<=^version = ")[^"]*' pyproject.toml)
+          echo "Project version is $VERSION"
+          echo "version=$VERSION" >> $GITHUB_ENV
+
+      - name: Use extracted version
+        run: |
+          echo "Using the extracted version: ${{ env.version }}"
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -30,6 +41,6 @@ jobs:
           context: ./tut2app
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/app:latest
-            ghcr.io/${{ github.repository_owner }}/app:1.0.0
+            ghcr.io/${{ github.repository_owner }}/tut2:latest-dev
+            ghcr.io/${{ github.repository_owner }}/tut2:{{ env.version }}-HASHGOESHERE-dev
             
