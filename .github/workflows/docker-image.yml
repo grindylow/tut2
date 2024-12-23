@@ -22,6 +22,7 @@ jobs:
           VERSION=$(grep -Po '(?<=^version = ")[^"]*' tut2app/pyproject.toml)
           echo "Project version is $VERSION"
           echo "version=$VERSION" >> $GITHUB_ENV
+          echo "github_sha=$GITHUB_SHA" >> $GITHUB_ENV
 
       - name: Use extracted version
         run: |
@@ -42,5 +43,5 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/tut2:latest-dev
-            ghcr.io/${{ github.repository_owner }}/tut2:${{env.version}}-${{GITHUB_SHA}}-dev
+            ghcr.io/${{ github.repository_owner }}/tut2:${{env.version}}-${{env.github_sha}}-dev
             
