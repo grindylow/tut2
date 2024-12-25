@@ -1,6 +1,5 @@
 FROM python:3
 WORKDIR /app
-COPY . .
 
 RUN apt update
 RUN apt install -y pipx
@@ -8,6 +7,7 @@ RUN apt install -y pipx
 
 RUN pipx install poetry
 ENV PATH="$PATH:/root/.local/bin"
+COPY . .
 RUN poetry install --with=runtime
 
 ENV TUT2_MONGODB_HOST=mongo
