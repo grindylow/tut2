@@ -7,7 +7,8 @@ RUN apt install -y pipx
 #RUN apt install python3 python3-pip -y
 
 RUN pipx install poetry
-RUN pip install --no-cache-dir gunicorn
+ENV PATH="$PATH:/root/.local/bin"
+RUN poetry install --with=runtime
 
 ENV TUT2_MONGODB_HOST=mongo
 ENV TUT2_MONGODB_PORT=27017
