@@ -450,11 +450,8 @@ function tut2_createDefaultView() {
 
     var addEventListeners=function(root) {
         //newTodoDom.addEventListener('keypress', newTodoKeyPressHandler, false);
-        var containers=$(root).find('.tut_container');
         var viewboxes=$(root).find('.tut_viewbox');
         var editboxes=$(root).find('.tut_editbox');
-        var editboxes_proj=$(root).find('.tut_proj_edit');
-        var editboxes_logentry=$(root).find('.tut_logentry_edit');
         var resumebuttonlinks=$(root).find('.tut_resume a');
         var removebuttonlinks=$(root).find('.tut_remove a');
         var insertentryabovelinks=$(root).find('.tut_insertabove a');
@@ -493,14 +490,19 @@ function tut2_createDefaultView() {
             }
             response(Array.from(result));
         }
-        editboxes_proj.autocomplete({
-            x_type: "proj",
-            source: suggest_function
+
+        editboxes.on("focus", function() {
+            $(this).autocomplete({
+                x_type: $(this).hasClass("tut_proj_edit") ? "proj":"logentry",
+                source: suggest_function
+            });
         });
-        editboxes_logentry.autocomplete({
-            x_type: "logentry",
-            source: suggest_function
+        editboxes.on("blur", function() {
+            if ($(this).hasClass('ui-autocomplete-input')) {
+                $(this).autocomplete("destroy");
+            }
         });
+
 
         // drag time trials:
         // references: http://luke.breuer.com/tutorial/javascript-drag-and-drop-tutorial.aspx
