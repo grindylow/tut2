@@ -493,14 +493,14 @@ function tut2_createDefaultView() {
             }
             response(Array.from(result));
         }
-        editboxes_proj.autocomplete({
-            x_type: "proj",
-            source: suggest_function
-        });
-        editboxes_logentry.autocomplete({
-            x_type: "logentry",
-            source: suggest_function
-        });
+        // editboxes_proj.autocomplete({
+        //     x_type: "proj",
+        //     source: suggest_function
+        // });
+        // editboxes_logentry.autocomplete({
+        //     x_type: "logentry",
+        //     source: suggest_function
+        // });
 
         // drag time trials:
         // references: http://luke.breuer.com/tutorial/javascript-drag-and-drop-tutorial.aspx
