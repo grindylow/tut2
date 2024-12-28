@@ -136,6 +136,12 @@ function tut2_createTutEntry(model,params) {
         _model.notifyListenersOfModelChanges();
     }
 
+    o.calcDuration = function() {
+        // calculate duration of this entry
+
+        // FIXME: implement!
+        return 123000;
+    }
 
     // return a loggable representation of this entry
     o.dump=function() {

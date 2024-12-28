@@ -337,17 +337,50 @@ function tut2_createDefaultView() {
 
     // The delete button of an entry was clicked.
     var removeClicked = function(event) {
-        console.log("removeClicked()");
+        console.info("removeClicked()");
         var entryroot = $(this).parents(".tut_entry");
-        console.log("item with id " + $(entryroot).attr("id") + " is to be removed.");
+        console.debug("item with id " + $(entryroot).attr("id") + " is to be removed.");
         var uid=decodeID($(entryroot).attr("id"));
         if(uid == "entrytemplate") {
             console.log("won't delete entrytemplate!!");
             return false;
         }
         uid = mymodel.deleteEntry(uid);
-        self.redrawTutEntriesUI([mymodel.createTemplateEntry()].concat(mymodel.getAllEntries()));
+        // self.redrawTutEntriesUI([mymodel.createTemplateEntry()].concat(mymodel.getAllEntries()));
+        // since #12 we only remove the entry from the GUI, not redraw everything. But first we 
+        // need to update the duration of the previous entry.
+
+        var next_entry = entryroot.next();
+
+        // Now find the previous entry (in time) (=the next entry down from the current one on screen)
+        // and update its duration. There might not be one, that's fine, too.
+        do {
+            if (next_entry.length == 0) {
+                console.info("no next entry found, stopping.");
+                break;
+            }
+            if (next_entry.hasClass("tut_entry")) {
+                console.info("found next entry, updating duration.");
+                calculateAndUpdateDuration(next_entry);
+                break;
+            }
+            console.info("next entry not an entry, trying next.");
+            next_entry = next_entry.next();
+        } while (true);
+
+        // remove the entry from the GUI
+        entryroot.remove();
+
         return false; // event handled!
+    };
+
+    // Calculate and update the duration of the given entry
+    var calculateAndUpdateDuration = function(html_entry) {
+        console.info("calculateAndUpdateDuration()", html_entry);
+        var uid = decodeID($(html_entry).attr("id"));
+        var entry = mymodel.getEntryByUID(uid);
+        var duration = entry.calcDuration();
+        html_entry.find('.tut_duration').html(durationStr(duration));
     };
 
     var itemClicked = function(event) {
@@ -699,7 +732,7 @@ function tut2_createDefaultView() {
                     var node = createTutEntryDOMNode(entry, prev_entry); /**CONTINUE**/
                     $(dom_targets[idx_view]).before(node);
                     idx_model++;
-            prev_entry = entry;
+                    prev_entry = entry;
                     continue;
                 }
 
@@ -728,7 +761,7 @@ function tut2_createDefaultView() {
                 } else {
                     console.log("ENTRIES NOT IDENTICAL - SIMPLY INSERTING A NEW ONE BEFORE THE EXISTING ONE!");
                     var node=createTutEntryDOMNode(entry, prev_entry);
-            prev_entry = entry;
+                    prev_entry = entry;
                     $(dom_targets[idx_view]).before(node.slideDown(1000));  // not overly pretty (yet). certainly broken in Safari. Not tried other browsers yet.
                     idx_model++;
                 }
@@ -737,7 +770,7 @@ function tut2_createDefaultView() {
                 //console.log("NOT IMPLEMENTED C");
                 console.log("APPENDING NODE TO END OF VIEW");
                 var node=createTutEntryDOMNode(entry, prev_entry);
-        prev_entry = entry;
+                prev_entry = entry;
                 c.append(node);
                 idx_model++;
             }
