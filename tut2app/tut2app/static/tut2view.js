@@ -92,9 +92,8 @@ function tut2_createDefaultView() {
         node.find(".tut_project").css({'background-color':colval});
 
         node.find(".tut_logentry").html(entry.getLogentry());
-        var d = new Date(entry.getStarttimeUtcMs());
-        var t = timeStr(d);
-        node.find(".tut_starttime").html(t);
+        updateEntryStartTime(entry, node);
+
         // if this is the entry template, grey out the entries
         if(entry.getUID()=="entrytemplate") {
             node.find(".tut_viewbox").addClass("tut_notyetvalid");
@@ -378,6 +377,7 @@ function tut2_createDefaultView() {
               // if we didn't add this, the GUI refresh would redraw  the element, removing focus
               // from the currently active text field..
             $(entryroot).find(".tut_notyetvalid").removeClass("tut_notyetvalid");
+            updateEntryStartTime(entry, entryroot);
             // create a new template
             self.redrawTutEntriesUI([mymodel.createTemplateEntry()].concat(mymodel.getAllEntries()));
         }
@@ -590,6 +590,13 @@ function tut2_createDefaultView() {
         });
     };
 
+    var updateEntryStartTime = function(entry, dom_entry) {
+        // copied code from createTutEntry() - @todo refactor out
+        var d=new Date(entry.getStarttimeUtcMs());
+        var t=timeStr(d);
+        $(dom_entry).find(".tut_starttime").html(t);
+    };
+
 
 /**** publicly accessible member functions ****/
 
@@ -710,10 +717,7 @@ function tut2_createDefaultView() {
                     // BUT we still update the time if this entry happens to be
                     // the template (SPECIAL CASE)
                     if(domuid=="entrytemplate") {
-                        // copied code from createTutEntry() - @todo refactor out
-                        var d=new Date(entry.getStarttimeUtcMs());
-                        var t=timeStr(d);
-                        $(dom_targets[idx_view]).find(".tut_starttime").html(t);
+                        updateEntryStartTime(entry, $(dom_targets[idx_view]));
                     } else {
                         // ALSO, THE DATA DISPLAYED IN THIS ENTRY MIGHT BE OUTDATED
                         // (OLD REVISION).
@@ -792,6 +796,19 @@ function tut2_createDefaultView() {
 
     // "Constructor" actions
     mymodel.registerSyncProgressListener(v.syncProgressCallback);
+
+    // #21: add a new entry when hotkey 'N' is pressed
+    // (similar to clicking the entry template)
+    $(document).on('keypress', function(e) {
+        if (e.which == 110 /* 'n' */ ) {
+            console.trace("keypress 'n'", e);
+            if ($(e.target).hasClass("edit")) {
+                console.trace("but inside edit field...");
+                return;
+            }
+            itemClicked.call($('#id-entrytemplate .tut_proj_container .tut_project'));
+        }
+    });
 
     return v;
 };
