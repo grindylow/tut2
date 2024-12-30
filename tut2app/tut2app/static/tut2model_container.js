@@ -37,7 +37,25 @@ function tut2_createTutModel(params)
             } else if(a.getStarttimeUtcMs() > b.getStarttimeUtcMs()) {
                 return -1;
             }
-            return 0; // both entries are equal
+            // identical timestamps, try to decide by project name
+            if(a.getProject() < b.getProject()) {
+                return 1;
+            } else if (a.getProject() > b.getProject()) {
+                return -1;
+            }
+            // project also identical, try to decide by logentry
+            if(a.getLogentry() < b.getLogentry()) {
+                return 1;
+            } else if (a.getLogentry() > b.getLogentry()) {
+                return -1;
+            }
+            // as a last straw, compare UIDs
+            if(a.getUID() < b.getUID()) {
+                return 1;
+            } else if (a.getUID() > b.getUID()) {
+                return -1;
+            }
+            return 0;  // both entries are equal, "should never happen"
         });
     };
 

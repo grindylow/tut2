@@ -138,9 +138,29 @@ function tut2_createTutEntry(model,params) {
 
     o.calcDuration = function() {
         // calculate duration of this entry
+        var entries = _model.getAllEntries();
+        var idx = entries.indexOf(this);
+        console.warn("calcDuration() for entry",idx);
+        if(idx<0) {
+            console.error("entry not found in model");
+            return 124000;
+        }
+        while (idx>0) {
+            idx--;
+            if (entries[idx].isDeleted()) {
+                continue;
+            }
+            // found next entry - calculate duration
+            var duration = entries[idx].getStarttimeUtcMs() - this.getStarttimeUtcMs();
+            console.warn("duration is", duration);
+            return duration;
+        }
 
-        // FIXME: implement!
-        return 123000;
+        // no next entry found - as a workaround: calculate duration until "now"
+        var now = new Date().getTime();
+        var duration = now - this.getStarttimeUtcMs();
+        console.warn("duration until 'now' is", duration);
+        return duration;
     }
 
     // return a loggable representation of this entry
