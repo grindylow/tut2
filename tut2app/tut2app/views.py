@@ -9,6 +9,7 @@ from tut2app import app
 from tut2app import login_manager
 from tut2app.model import model
 from tut2app.model import users
+from tut2app import tut2helpers
 
 mymodel = model.Model()  # this might not be right - does it need to go into 'g'?
 login_manager.login_view = 'login'
@@ -77,7 +78,7 @@ def logout():
 
 @app.route("/details")
 def details():
-    return render_template("userdetails.html")
+    return render_template("userdetails.html", tut2_version=tut2helpers.get_tut2_version())
 
 
 @app.route("/reports", methods=["GET", "POST"])

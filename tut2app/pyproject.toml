@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tut2"
-version = "0.3.0"
+version = "0.4.0"
 description = "Effortless one-click time tracking"
 authors = ["Martin Grill <you@example.com>"]
 license = "GPLv3"
@@ -13,6 +13,7 @@ flask-debugtoolbar = "^0.16.0"
 flask-login = "^0.6.3"
 pymongo = "^4.10.1"
 email-validator = "^2.2.0"
+toml = "^0.10.2"
 
 
 [tool.poetry.group.dev.dependencies]
