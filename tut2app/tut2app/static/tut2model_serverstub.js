@@ -7,9 +7,8 @@
 
 // The TutModel maintains the list of all Log Entries, together with
 // the necessary housekeeping data to support syncing.
-function tut2_createServerModelStub()
-{
-    var o={};
+function tut2_createServerModelStub() {
+    var o = {};
 
     /* private variables and member functions */
 
@@ -25,28 +24,28 @@ function tut2_createServerModelStub()
      *
      *  Updated version with Promise support: return a Promise.
      */
-    o.queryEntries = function(fromRev,callback) {
-        return new Promise(function(resolve, reject) {
-            console.log("serverStub.queryEntries(fromRev=%s)",fromRev);
+    o.queryEntries = function (fromRev, callback) {
+        return new Promise(function (resolve, reject) {
+            console.log("serverStub.queryEntries(fromRev=%s)", fromRev);
             // was: we use a synchronous ajax call (bad)
             var handle = $.ajax({
                 dataType: "json",
                 url: "api_queryentries",
-                cache:false,
-                data: {"fromrev":fromRev},
+                cache: false,
+                data: { "fromrev": fromRev },
                 //success: success
                 //async: false
-                success: function(result) {
-                    console.info("retrieved via AJAX asynchronous:",result);
-                    var resultSet=[];
-                    result.entries.forEach(function(e) {
-                        resultSet.push(tut2_createTutEntry(undefined /*model*/,e));
+                success: function (result) {
+                    console.info("retrieved via AJAX asynchronous:", result);
+                    var resultSet = [];
+                    result.entries.forEach(function (e) {
+                        resultSet.push(tut2_createTutEntry(undefined /*model*/, e));
                     });
-                    console.info("actual entries:",resultSet);
+                    console.info("actual entries:", resultSet);
                     resolve(resultSet);
                     //callback(resultSet);  // this is the "asynchronous return"
                 },
-                error: function(a,b) {
+                error: function (a, b) {
                     console.warn("AJAX call resulted in 'error' with");
                     console.warn(a);
                     console.warn(b);
@@ -62,28 +61,28 @@ function tut2_createServerModelStub()
 
      *  @returns (Server-side) revision number of the new entry
      */
-    o.addOrUpdateEntry = function(entry) {
-        return new Promise(function(resolve, reject) {
+    o.addOrUpdateEntry = function (entry) {
+        return new Promise(function (resolve, reject) {
             // @todo change interface to allow adding multiple entries in one go
             // @todo make it cope with multiple entries at once (server can handle it already I think, albeit without sophisticated error handling)
-            console.log("serverStub.addOrUpdateEntry()",entry.pickleToDict());
+            console.log("serverStub.addOrUpdateEntry()", entry.pickleToDict());
             var newrev;
             var handle = $.ajax({
                 dataType: "json",
                 url: "api_addorupdateentry",
                 contentType: "application/json",
-                cache:false,
+                cache: false,
                 method: "post",
-                data: JSON.stringify({entries:[entry.pickleToDict()]}),
+                data: JSON.stringify({ entries: [entry.pickleToDict()] }),
                 //success: success
                 async: true,
-                success: function(result) {
-                    console.info("retrieved via AJAX:",result);
+                success: function (result) {
+                    console.info("retrieved via AJAX:", result);
                     newrev = result['revnrs'][0]
                     console.assert(newrev !== undefined, 'Upstream revision number is undefined - most likely the update has failed.');
                     resolve(newrev);
                 },
-                error: function(a,b) {
+                error: function (a, b) {
                     console.warn("AJAX call resulted in 'error' with");
                     console.warn(a);
                     console.warn(b);

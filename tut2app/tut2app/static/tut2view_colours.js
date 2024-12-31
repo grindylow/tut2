@@ -6,10 +6,10 @@
 'use strict';
 
 /* from https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript/43383990#43383990 */
-String.prototype.hashCode = function() {
+String.prototype.hashCode = function () {
     var hash = 0, i = 0, len = this.length;
-    while ( i < len ) {
-        hash  = ((hash << 5) - hash + this.charCodeAt(i++)) << 0;
+    while (i < len) {
+        hash = ((hash << 5) - hash + this.charCodeAt(i++)) << 0;
     }
     return hash + 2147483648;
 };
@@ -38,9 +38,9 @@ function tut2_pick_colour_for_project(fullprojstr) {
     const nullproj_regex = /(^0$)/gm;
 
     var h = proj.hashCode();
-    var bgcolidx = h%project_colours.length;
+    var bgcolidx = h % project_colours.length;
     var colval = project_colours[bgcolidx];
-    if(nullproj_regex.exec(proj) !== null) {
+    if (nullproj_regex.exec(proj) !== null) {
         colval = "#bababa";
     }
     //console.log("number of colours", project_colours.length);
