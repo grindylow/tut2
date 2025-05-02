@@ -53,4 +53,4 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache
           tags: |
             ghcr.io/${{ github.repository_owner }}/tut2:latest-dev
-            ghcr.io/${{ github.repository_owner }}/tut2:${{ env.version }}-${{ env.github_sha }}-dev
+            ghcr.io/${{ github.repository_owner }}/tut2:${{ env.version }}-${{ env.sha_short }}-dev
