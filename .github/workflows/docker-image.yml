@@ -28,6 +28,8 @@ jobs:
           echo "Project version is $VERSION"
           echo "version=$VERSION" >> $GITHUB_ENV
           echo "github_sha=$GITHUB_SHA" >> $GITHUB_ENV
+          # We also store the hash in a file so it can be displayed by the TUT2 server (#18)
+          echo $GITHUB_SHA > tut2/tut2app/FROZEN_HASH
 
       - name: Use extracted version
         run: |
