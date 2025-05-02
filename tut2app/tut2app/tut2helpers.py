@@ -41,7 +41,7 @@ def get_tut2_version():
     else:
         # also (attempt to) retrieve GIT commit hash
         try:
-            git_commit_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip().decode('utf-8')
+            git_commit_hash = "git"+subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('utf-8')
         except subprocess.CalledProcessError:
             git_commit_hash = 'could-not-retrieve-git-commit-hash'
 

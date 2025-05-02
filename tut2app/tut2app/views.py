@@ -17,7 +17,7 @@ login_manager.login_view = 'login'
 
 @app.route("/")
 def hello():
-    return render_template("hello.html")
+    return render_template("hello.html", tut2_version=tut2helpers.get_tut2_version())
 
 
 @login_manager.user_loader
