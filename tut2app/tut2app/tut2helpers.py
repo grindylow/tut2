@@ -23,14 +23,30 @@ def get_tut2_version():
         pyproject_data = toml.load(f)
     version = pyproject_data['tool']['poetry']['version']
 
-    # also (attempt to) retrieve GIT commit hash
-    try:
-        git_commit_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip().decode('utf-8')
-    except subprocess.CalledProcessError:
-        git_commit_hash = 'unknown-git-commit-hash'
+    # if this is a version built by CI/CD, we should have a
+    # GIT commit hash in FROZEN_HASH. Read this.
+    # read git hash from file FROZEN_HASH
+    frozen_hash_file = 'FROZEN_HASH'
+    if os.path.isfile(frozen_hash_file):
+        with open(frozen_hash_file, 'r') as f:
+            frozen_hash = f.read().strip()
+        # if we have a hash, use it
+        if frozen_hash:
+            logger.info(f"Read frozen hash {frozen_hash} from file '{frozen_hash_file}'.")
+            git_commit_hash = frozen_hash
+        else:
+            logger.warning(f"File '{frozen_hash_file}' is empty.")
+            git_commit_hash = 'unknown-frozen-hash'
+
+    else:
+        # also (attempt to) retrieve GIT commit hash
+        try:
+            git_commit_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip().decode('utf-8')
+        except subprocess.CalledProcessError:
+            git_commit_hash = 'could-not-retrieve-git-commit-hash'
 
     tut2_version_str = f'{version}-{git_commit_hash}'
-    return 
+    return tut2_version_str
 
 
 def get_flask_key():
