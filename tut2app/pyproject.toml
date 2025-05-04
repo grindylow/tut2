@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tut2"
-version = "0.4.1"
+version = "0.4.2"
 description = "Effortless one-click time tracking"
 authors = ["Martin Grill <you@example.com>"]
 license = "GPLv3"
