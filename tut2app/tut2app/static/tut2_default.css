@@ -44,12 +44,14 @@ div.tut_right {
 div.tut_resume {
     vertical-align: top;
     padding: 0 0 0 0;
+    margin-right: 0.4em;
     xxbackground-color: lightgreen;
     display: none;
 }
 div.tut_remove {
     vertical-align: top;
     padding: 0 0 0 0;
+    margin-right: 0.4em;
     xxbackground-color: lightgreen;
     display: none;
 }
@@ -80,6 +82,10 @@ div.tut_logentry {
     background-color: #eee;
 }
 
+div.tut_logentry_container {
+    margin-left:0.3em;
+}
+
 div.tut_hidden {
     visibility: hidden;
 }
@@ -88,11 +94,6 @@ div.tut_notyetvalid {
     color: #ccc;
     background-color: #eee;
 }
-
-//body p {
-//    margin-bottom: 0.1em;
-//    font-weight: bold;
-//}
 
 body {
     font-family: sans-serif;
